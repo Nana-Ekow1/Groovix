@@ -112,10 +112,17 @@
 <div class="screen" id="screen-library">
 
   <div class="lib-topbar">
-    <span class="lib-title">MY LIBRARY</span>
-    <div class="lib-topbar-actions">
+    <span class="lib-title" id="libTopbarTitle">MY LIBRARY</span>
+    <div class="lib-topbar-actions" id="libNormalActions">
       <button class="topbar-btn" id="grantFolderBtn"><i class="fa fa-folder-open"></i></button>
       <button class="topbar-btn" id="btnSearch"><i class="fa fa-search"></i></button>
+      <button class="topbar-btn" id="btnSelectMode" title="Select songs"><i class="fa fa-check-square"></i></button>
+    </div>
+    <!-- Select mode toolbar (hidden by default) -->
+    <div class="lib-topbar-actions" id="libSelectActions" style="display:none">
+      <button class="topbar-btn" id="btnSelectAll" title="Select all"><i class="fa fa-check-double"></i></button>
+      <button class="topbar-btn select-delete-btn" id="btnDeleteSelected" title="Delete selected"><i class="fa fa-trash"></i></button>
+      <button class="topbar-btn" id="btnCancelSelect" title="Cancel"><i class="fa fa-xmark"></i></button>
     </div>
   </div>
 

@@ -923,3 +923,65 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 #feedbackText:focus { border-color: var(--accent); }
+
+/* ===================== SELECT MODE ===================== */
+.select-delete-btn { color: #ef4444 !important; }
+
+.song-item.selectable { cursor: pointer; }
+
+.song-item .select-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .15s;
+  font-size: 0.75rem; color: transparent;
+}
+
+.song-item.selected .select-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.select-bar {
+  position: fixed;
+  bottom: calc(var(--bnav-h) + var(--safe-b));
+  left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 12px;
+  z-index: 88;
+  transform: translateY(100%);
+  transition: transform .25s ease;
+}
+
+.select-bar.visible { transform: translateY(0); }
+
+.select-bar-count {
+  flex: 1;
+  font-size: 0.9rem; font-weight: 600;
+  color: var(--text);
+}
+
+.select-bar-btn {
+  background: none; border: none;
+  color: var(--muted); font-size: 0.88rem;
+  cursor: pointer; padding: 8px 14px;
+  border-radius: 10px; transition: all .15s;
+  display: flex; align-items: center; gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.select-bar-btn.danger { color: #ef4444; }
+.select-bar-btn:hover  { background: var(--hover); }
+
+/* ===================== DRAGGABLE AI FAB ===================== */
+.ai-fab {
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.ai-fab:active { cursor: grabbing; }
+.ai-fab.dragging { transition: none !important; box-shadow: 0 8px 32px rgba(124,58,237,.8); }

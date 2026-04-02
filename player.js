@@ -115,8 +115,28 @@ const Player = (() => {
   // ---- Song item ----
   function makeSongItem(song, realIdx, isActive, opts = {}) {
     const li = document.createElement('li');
-    li.className = 'song-item' + (isActive ? ' active' : '');
+    const inSelectMode = typeof window.selectMode === 'function' && window.selectMode();
+    const isSelected   = inSelectMode && window.selectedIds && window.selectedIds.has(song.id);
+
+    li.className = 'song-item' + (isActive ? ' active' : '') + (isSelected ? ' selected' : '');
     li.dataset.index = realIdx;
+
+    // In select mode show checkbox, otherwise show normal buttons
+    if (inSelectMode) {
+      const thumb = song.coverUrl ? `<img src="${song.coverUrl}" alt="cover"/>` : '<i class="fa fa-music"></i>';
+      li.innerHTML = `
+        <div class="select-check"><i class="fa fa-check"></i></div>
+        <div class="song-thumb">${thumb}</div>
+        <div class="song-item-info">
+          <div class="title">${song.name}</div>
+          <div class="artist">${song.artist || 'Unknown Artist'}${song.album ? ' · ' + song.album : ''}</div>
+        </div>
+      `;
+      li.addEventListener('click', () => {
+        if (typeof window.toggleSelect === 'function') window.toggleSelect(song.id);
+      });
+      return li;
+    }
 
     const favIcon   = isFav(song.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
     const favActive = isFav(song.id) ? ' fav-active' : '';
@@ -127,9 +147,7 @@ const Player = (() => {
     if (opts.showRemoveFromPlaylist) rightBtns += `<button class="song-item-action btn-rm-pl"  data-id="${song.id}"><i class="fa fa-minus"></i></button>`;
     if (opts.showDelete !== false)   rightBtns += `<button class="song-item-menu" data-id="${song.id}" title="More options"><i class="fa fa-ellipsis-vertical"></i></button>`;
 
-    const thumb = song.coverUrl
-      ? `<img src="${song.coverUrl}" alt="cover"/>`
-      : '<i class="fa fa-music"></i>';
+    const thumb = song.coverUrl ? `<img src="${song.coverUrl}" alt="cover"/>` : '<i class="fa fa-music"></i>';
 
     li.innerHTML = `
       <div class="song-thumb">${thumb}</div>
@@ -142,7 +160,6 @@ const Player = (() => {
 
     li.addEventListener('click', (e) => {
       if (e.target.closest('.song-item-right')) return;
-      // Always look up the real index at click time in case array changed
       const clickIdx = songs.findIndex(s => s.id === song.id);
       playSong(clickIdx >= 0 ? clickIdx : realIdx);
     });

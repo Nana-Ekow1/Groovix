@@ -272,6 +272,169 @@ document.getElementById('btnSubmitFeedback').addEventListener('click', () => {
   showToast(`Thanks for your ${selectedStars}★ feedback!`);
 });
 
+// ---- Bulk Select Mode ----
+let selectMode = false;
+const selectedIds = new Set();
+
+const btnSelectMode    = document.getElementById('btnSelectMode');
+const btnSelectAll     = document.getElementById('btnSelectAll');
+const btnDeleteSelected= document.getElementById('btnDeleteSelected');
+const btnCancelSelect  = document.getElementById('btnCancelSelect');
+const libNormalActions = document.getElementById('libNormalActions');
+const libSelectActions = document.getElementById('libSelectActions');
+const libTopbarTitle   = document.getElementById('libTopbarTitle');
+
+// Create select bar
+const selectBar = document.createElement('div');
+selectBar.className = 'select-bar';
+selectBar.innerHTML = `
+  <span class="select-bar-count" id="selectCount">0 selected</span>
+  <button class="select-bar-btn" id="selectBarSelectAll"><i class="fa fa-check-double"></i> All</button>
+  <button class="select-bar-btn danger" id="selectBarDelete"><i class="fa fa-trash"></i> Delete</button>
+  <button class="select-bar-btn" id="selectBarCancel"><i class="fa fa-xmark"></i> Cancel</button>
+`;
+document.body.appendChild(selectBar);
+
+function enterSelectMode() {
+  selectMode = true;
+  selectedIds.clear();
+  libNormalActions.style.display = 'none';
+  libSelectActions.style.display = 'flex';
+  libTopbarTitle.textContent = 'SELECT SONGS';
+  selectBar.classList.add('visible');
+  Player.renderList('');
+}
+
+function exitSelectMode() {
+  selectMode = false;
+  selectedIds.clear();
+  libNormalActions.style.display = 'flex';
+  libSelectActions.style.display = 'none';
+  libTopbarTitle.textContent = 'MY LIBRARY';
+  selectBar.classList.remove('visible');
+  Player.renderList('');
+}
+
+function updateSelectCount() {
+  document.getElementById('selectCount').textContent =
+    `${selectedIds.size} selected`;
+}
+
+function deleteSelected() {
+  if (!selectedIds.size) return;
+  const songs = Player.getSongs();
+  // Delete in reverse order to preserve indices
+  const indices = [...selectedIds]
+    .map(id => songs.findIndex(s => s.id === id))
+    .filter(i => i >= 0)
+    .sort((a, b) => b - a);
+  indices.forEach(i => Player.removeSong(i));
+  exitSelectMode();
+  if (typeof showToast === 'function') showToast(`Deleted ${indices.length} song${indices.length !== 1 ? 's' : ''}`);
+}
+
+btnSelectMode.addEventListener('click', enterSelectMode);
+btnCancelSelect.addEventListener('click', exitSelectMode);
+document.getElementById('selectBarCancel').addEventListener('click', exitSelectMode);
+
+btnSelectAll.addEventListener('click', () => {
+  const songs = Player.getSongs();
+  if (selectedIds.size === songs.length) {
+    selectedIds.clear();
+  } else {
+    songs.forEach(s => selectedIds.add(s.id));
+  }
+  updateSelectCount();
+  Player.renderList('');
+});
+
+document.getElementById('selectBarSelectAll').addEventListener('click', () => {
+  const songs = Player.getSongs();
+  if (selectedIds.size === songs.length) {
+    selectedIds.clear();
+  } else {
+    songs.forEach(s => selectedIds.add(s.id));
+  }
+  updateSelectCount();
+  Player.renderList('');
+});
+
+btnDeleteSelected.addEventListener('click', deleteSelected);
+document.getElementById('selectBarDelete').addEventListener('click', deleteSelected);
+
+// Expose to player.js for rendering checkboxes
+window.selectMode    = () => selectMode;
+window.selectedIds   = selectedIds;
+window.toggleSelect  = (id) => {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  updateSelectCount();
+  Player.renderList('');
+};
+
+// ---- Draggable AI FAB ----
+const aiFabEl = document.getElementById('aiFab');
+let fabX = 0, fabY = 0, startX = 0, startY = 0, dragging = false;
+
+// Save position
+function saveFabPos(x, y) {
+  localStorage.setItem('groovix_fab', JSON.stringify({ x, y }));
+}
+
+function loadFabPos() {
+  try {
+    const p = JSON.parse(localStorage.getItem('groovix_fab'));
+    if (p) {
+      aiFabEl.style.right = 'auto';
+      aiFabEl.style.bottom = 'auto';
+      aiFabEl.style.left = p.x + 'px';
+      aiFabEl.style.top  = p.y + 'px';
+    }
+  } catch(e) {}
+}
+
+loadFabPos();
+
+function onFabPointerDown(e) {
+  dragging = false;
+  const rect = aiFabEl.getBoundingClientRect();
+  startX = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  startY = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  aiFabEl.classList.add('dragging');
+  document.addEventListener('mousemove', onFabPointerMove);
+  document.addEventListener('touchmove', onFabPointerMove, { passive: false });
+  document.addEventListener('mouseup',   onFabPointerUp);
+  document.addEventListener('touchend',  onFabPointerUp);
+}
+
+function onFabPointerMove(e) {
+  dragging = true;
+  e.preventDefault();
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  const size = 56;
+  const maxX = window.innerWidth  - size;
+  const maxY = window.innerHeight - size;
+  fabX = Math.max(0, Math.min(cx - startX, maxX));
+  fabY = Math.max(0, Math.min(cy - startY, maxY));
+  aiFabEl.style.right  = 'auto';
+  aiFabEl.style.bottom = 'auto';
+  aiFabEl.style.left   = fabX + 'px';
+  aiFabEl.style.top    = fabY + 'px';
+}
+
+function onFabPointerUp() {
+  aiFabEl.classList.remove('dragging');
+  document.removeEventListener('mousemove', onFabPointerMove);
+  document.removeEventListener('touchmove', onFabPointerMove);
+  document.removeEventListener('mouseup',   onFabPointerUp);
+  document.removeEventListener('touchend',  onFabPointerUp);
+  if (dragging) saveFabPos(fabX, fabY);
+}
+
+aiFabEl.addEventListener('mousedown',  onFabPointerDown);
+aiFabEl.addEventListener('touchstart', onFabPointerDown, { passive: true });
+
 // Init: start on player screen
 switchScreen('player');
 

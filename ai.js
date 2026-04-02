@@ -6,7 +6,7 @@ const AI = (() => {
 
   // ---- Gemini API config ----
   // Get a FREE key at: https://aistudio.google.com/app/apikey
-  const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+  const GEMINI_API_KEY = 'AIzaSyAlMjrTo-wkUk_8TghzTJVSvYEwhv0QIMg';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
   const SYSTEM_PROMPT = `You are Groovix AI, a music expert assistant built into the Groovix music player app.

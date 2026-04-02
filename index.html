@@ -6,9 +6,9 @@
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="theme-color" content="#0f0f13"/>
+  <meta name="theme-color" content="#111111"/>
 
-  <!-- Splash Screen -->
+  <!-- Splash -->
   <div id="splash">
     <div class="splash-inner">
       <div class="splash-icon"><i class="fa fa-music"></i></div>
@@ -17,211 +17,227 @@
       <div class="splash-bar"><div class="splash-bar-fill"></div></div>
     </div>
   </div>
+
   <title>Groovix</title>
   <link rel="stylesheet" href="style.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 </head>
 <body>
-  <div class="app">
 
-    <!-- ===== DESKTOP SIDEBAR ===== -->
-    <aside class="sidebar">
-      <div class="logo"><i class="fa fa-music"></i><span class="logo-text"> Groovix</span></div>
-      <nav class="sidebar-nav">
-        <button class="nav-btn active" data-view="player"><i class="fa fa-play-circle"></i><span class="nav-label">Player</span></button>
-        <button class="nav-btn" data-view="library"><i class="fa fa-list"></i><span class="nav-label">Library</span></button>
-        <button class="nav-btn" data-view="favorites"><i class="fa fa-heart"></i><span class="nav-label">Favorites</span></button>
-        <button class="nav-btn" data-view="playlists"><i class="fa fa-layer-group"></i><span class="nav-label">Playlists</span></button>
-      </nav>
-    </aside>
+<!-- ===================== PLAYER SCREEN ===================== -->
+<div class="screen active" id="screen-player">
 
-    <!-- ===== MAIN CONTENT ===== -->
-    <main class="main">
-
-      <!-- Mobile top bar -->
-      <header class="mobile-topbar">
-        <span class="mobile-logo"><i class="fa fa-music"></i> Groovix</span>
-      </header>
-
-      <!-- Player View -->
-      <section class="view active" id="view-player">
-        <div class="now-playing">
-          <div class="album-art" id="albumArt"><i class="fa fa-music"></i></div>
-          <div class="song-meta">
-            <div class="song-info">
-              <h2 id="songTitle">No song selected</h2>
-              <p id="songArtist">--</p>
-            </div>
-            <button id="btnFavPlayer" class="btn-heart" title="Favorite"><i class="fa-regular fa-heart"></i></button>
-          </div>
-          <div class="progress-container">
-            <span id="currentTime">0:00</span>
-            <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1"/>
-            <span id="duration">0:00</span>
-          </div>
-          <div class="controls">
-            <button id="btnShuffle" title="Shuffle"><i class="fa fa-shuffle"></i></button>
-            <button id="btnPrev" title="Previous"><i class="fa fa-backward-step"></i></button>
-            <button id="btnPlayPause" title="Play/Pause"><i class="fa fa-play"></i></button>
-            <button id="btnNext" title="Next"><i class="fa fa-forward-step"></i></button>
-            <button id="btnRepeat" title="Repeat"><i class="fa fa-repeat"></i></button>
-          </div>
-          <div class="volume-container">
-            <i class="fa fa-volume-low"></i>
-            <input type="range" id="volumeBar" value="80" min="0" max="100"/>
-            <i class="fa fa-volume-high"></i>
-          </div>
-        </div>
-        <!-- Song list on home page -->
-        <div class="home-list-section">
-          <div class="home-list-header">
-            <span>All Songs</span>
-            <label class="icon-btn accent" for="fileInput2" title="Add songs"><i class="fa fa-plus"></i></label>
-            <input type="file" id="fileInput2" accept="audio/*" multiple hidden/>
-          </div>
-          <ul class="song-list" id="homeSongList">
-            <li class="empty-msg"><i class="fa fa-music" style="font-size:1.6rem;margin-bottom:8px;opacity:.3"></i><br>No songs yet. Tap + to add.</li>
-          </ul>
-        </div>
-      </section>
-
-      <!-- Library View -->
-      <section class="view" id="view-library">
-        <div class="view-header">
-          <h2>Library</h2>
-          <div class="view-header-actions">
-            <button class="icon-btn" id="grantFolderBtn" title="Open folder"><i class="fa fa-folder-open"></i></button>
-            <label class="icon-btn accent" for="fileInput" title="Add songs"><i class="fa fa-plus"></i></label>
-            <input type="file" id="fileInput" accept="audio/*" multiple hidden/>
-          </div>
-        </div>
-        <div id="folderStatus" class="folder-status" style="display:none"></div>
-        <div class="toolbar">
-          <div class="search-bar">
-            <i class="fa fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search songs..."/>
-          </div>
-          <select id="sortSelect" class="sort-select">
-            <option value="default">Date Added</option>
-            <option value="name-asc">Name A–Z</option>
-            <option value="name-desc">Name Z–A</option>
-            <option value="artist-asc">Artist A–Z</option>
-            <option value="artist-desc">Artist Z–A</option>
-            <option value="duration-asc">Shortest</option>
-            <option value="duration-desc">Longest</option>
-          </select>
-        </div>
-        <ul class="song-list" id="songList">
-          <li class="empty-msg"><i class="fa fa-music" style="font-size:2rem;margin-bottom:10px;opacity:.3"></i><br>No songs yet.<br>Tap + to add music.</li>
-        </ul>
-      </section>
-
-      <!-- Favorites View -->
-      <section class="view" id="view-favorites">
-        <div class="view-header">
-          <h2><i class="fa fa-heart" style="color:#f43f5e"></i> Favorites</h2>
-        </div>
-        <ul class="song-list" id="favoritesList">
-          <li class="empty-msg"><i class="fa fa-heart" style="font-size:2rem;margin-bottom:10px;opacity:.3"></i><br>No favorites yet.<br>Tap ♥ on any song.</li>
-        </ul>
-      </section>
-
-      <!-- Playlists View -->
-      <section class="view" id="view-playlists">
-        <div class="view-header">
-          <h2>Playlists</h2>
-          <button class="icon-btn accent" id="btnNewPlaylist" title="New playlist"><i class="fa fa-plus"></i></button>
-        </div>
-        <div class="playlists-grid" id="playlistsGrid">
-          <div class="empty-msg"><i class="fa fa-layer-group" style="font-size:2rem;margin-bottom:10px;opacity:.3"></i><br>No playlists yet.<br>Tap + to create one.</div>
-        </div>
-      </section>
-
-    </main>
+  <!-- Top bar -->
+  <div class="player-topbar">
+    <button class="topbar-btn" id="btnGoLibrary"><i class="fa fa-chevron-down"></i></button>
+    <span class="topbar-title">Now Playing</span>
+    <button class="topbar-btn" id="btnQueue"><i class="fa fa-list"></i></button>
   </div>
 
-  <!-- ===== NOW PLAYING BAR (above bottom nav, other views) ===== -->
-  <div class="now-playing-bar" id="nowPlayingBar">
-    <div class="npb-art" id="npbArt"><i class="fa fa-music"></i></div>
-    <div class="npb-info">
-      <span class="npb-title" id="npbTitle">Not playing</span>
-      <span class="npb-artist" id="npbArtist">--</span>
-    </div>
-    <button class="npb-play" id="npbPlay"><i class="fa fa-play"></i></button>
+  <!-- Album Art -->
+  <div class="player-art-wrap">
+    <div class="player-art" id="albumArt"><i class="fa fa-music"></i></div>
   </div>
 
-  <!-- ===== MOBILE BOTTOM NAV ===== -->
-  <nav class="bottom-nav">
-    <div class="bottom-nav-inner">
-      <button class="bnav-btn active" data-view="player">
-        <i class="fa fa-play-circle"></i><span>Player</span>
-      </button>
-      <button class="bnav-btn" data-view="library">
-        <i class="fa fa-list"></i><span>Library</span>
-      </button>
-      <button class="bnav-btn" data-view="favorites">
-        <i class="fa fa-heart"></i><span>Favorites</span>
-      </button>
-      <button class="bnav-btn" data-view="playlists">
-        <i class="fa fa-layer-group"></i><span>Playlists</span>
-      </button>
+  <!-- Song info -->
+  <div class="player-info">
+    <div class="player-info-text">
+      <p class="player-artist" id="songArtist">--</p>
+      <h2 class="player-title" id="songTitle">No song selected</h2>
     </div>
-  </nav>
+    <button class="btn-heart" id="btnFavPlayer"><i class="fa-regular fa-heart"></i></button>
+  </div>
 
-  <!-- ===== PLAYLIST DETAIL MODAL ===== -->
-  <div class="modal-overlay" id="playlistModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalPlaylistName">Playlist</h3>
-        <button class="modal-close" id="modalClose"><i class="fa fa-xmark"></i></button>
+  <!-- Action row -->
+  <div class="player-actions">
+    <button class="action-btn fav-action" id="btnLike"><i class="fa-regular fa-heart"></i><span>Like</span></button>
+    <button class="action-btn" id="btnAddPlaylist"><i class="fa fa-list-ul"></i><span>Playlist</span></button>
+    <button class="action-btn" id="btnAddFiles2"><i class="fa fa-plus"></i><span>Add</span></button>
+    <label class="action-btn" for="fileInput"><i class="fa fa-folder-open"></i><span>Import</span></label>
+    <input type="file" id="fileInput" accept="audio/*" multiple hidden/>
+    <button class="action-btn" id="btnShare"><i class="fa fa-share-nodes"></i><span>Share</span></button>
+  </div>
+
+  <!-- Waveform progress -->
+  <div class="player-progress">
+    <div class="waveform-wrap">
+      <div class="waveform" id="waveform">
+        <!-- bars generated by JS -->
       </div>
-      <div class="modal-body">
-        <ul class="song-list" id="playlistSongList"></ul>
-        <div class="modal-add-section">
-          <p class="section-label">Add from library</p>
-          <ul class="song-list" id="modalLibrarySongs"></ul>
-        </div>
-      </div>
+      <input type="range" id="progressBar" class="progress-range" value="0" min="0" max="100" step="0.1"/>
+    </div>
+    <div class="progress-times">
+      <span id="currentTime">0:00</span>
+      <span id="duration">0:00</span>
     </div>
   </div>
 
-  <!-- ===== NEW PLAYLIST MODAL ===== -->
-  <div class="modal-overlay" id="newPlaylistModal">
-    <div class="modal modal-sm">
-      <div class="modal-header">
-        <h3>New Playlist</h3>
-        <button class="modal-close" id="newPlaylistClose"><i class="fa fa-xmark"></i></button>
-      </div>
-      <div class="modal-body">
-        <input type="text" id="playlistNameInput" class="text-input" placeholder="Playlist name..."/>
-        <button class="btn-primary" id="btnCreatePlaylist">Create Playlist</button>
-      </div>
+  <!-- Controls -->
+  <div class="player-controls">
+    <button class="ctrl-btn" id="btnMore"><i class="fa fa-ellipsis"></i></button>
+    <button class="ctrl-btn" id="btnPrev"><i class="fa fa-backward-step"></i></button>
+    <button class="ctrl-btn play-btn" id="btnPlayPause"><i class="fa fa-play"></i></button>
+    <button class="ctrl-btn" id="btnNext"><i class="fa fa-forward-step"></i></button>
+    <button class="ctrl-btn" id="btnShuffle"><i class="fa fa-shuffle"></i></button>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="player-bottom-bar">
+    <div class="pbb-left">
+      <button class="pbb-btn" id="btnRepeat"><i class="fa fa-repeat"></i> Repeat</button>
+    </div>
+    <div class="pbb-right">
+      <span class="pbb-label">Stay on</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="stayOnToggle"/>
+        <span class="toggle-track"></span>
+      </label>
     </div>
   </div>
 
-  <!-- ===== AI FAB ===== -->
-  <button class="ai-fab" id="aiFab" title="AI Assistant">
-    <i class="fa fa-robot"></i>
-    <span class="ai-fab-dot"></span>
+  <!-- Volume -->
+  <div class="player-volume">
+    <i class="fa fa-volume-low"></i>
+    <input type="range" id="volumeBar" value="80" min="0" max="100"/>
+    <i class="fa fa-volume-high"></i>
+  </div>
+
+</div>
+
+<!-- ===================== LIBRARY SCREEN ===================== -->
+<div class="screen" id="screen-library">
+
+  <div class="lib-topbar">
+    <span class="lib-title">MY LIBRARY</span>
+    <div class="lib-topbar-actions">
+      <button class="topbar-btn" id="grantFolderBtn"><i class="fa fa-folder-open"></i></button>
+      <button class="topbar-btn" id="btnSearch"><i class="fa fa-search"></i></button>
+    </div>
+  </div>
+
+  <!-- Search bar (hidden by default) -->
+  <div class="lib-search" id="libSearch" style="display:none">
+    <i class="fa fa-search"></i>
+    <input type="text" id="searchInput" placeholder="Search songs..."/>
+    <button id="btnCloseSearch"><i class="fa fa-xmark"></i></button>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="lib-tabs">
+    <button class="lib-tab active" data-tab="all">All</button>
+    <button class="lib-tab" data-tab="local">Local</button>
+    <button class="lib-tab" data-tab="favorites">Favorites</button>
+    <button class="lib-tab" data-tab="playlists">Playlists</button>
+  </div>
+
+  <div id="folderStatus" class="folder-status" style="display:none"></div>
+
+  <!-- Sort row -->
+  <div class="lib-sort-row">
+    <select id="sortSelect" class="sort-select">
+      <option value="default">Date Added</option>
+      <option value="name-asc">Name A–Z</option>
+      <option value="name-desc">Name Z–A</option>
+      <option value="artist-asc">Artist A–Z</option>
+      <option value="artist-desc">Artist Z–A</option>
+      <option value="duration-asc">Shortest</option>
+      <option value="duration-desc">Longest</option>
+    </select>
+  </div>
+
+  <!-- Song list -->
+  <div class="lib-content" id="libContent">
+    <ul class="song-list" id="songList">
+      <li class="empty-msg"><i class="fa fa-music"></i><br>No songs yet.<br>Tap the folder icon to add music.</li>
+    </ul>
+    <!-- Favorites tab content -->
+    <ul class="song-list" id="favoritesList" style="display:none"></ul>
+    <!-- Playlists tab content -->
+    <div class="playlists-grid" id="playlistsGrid" style="display:none">
+      <div class="empty-msg"><i class="fa fa-layer-group"></i><br>No playlists yet.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== BOTTOM NAV ===================== -->
+<nav class="bottom-nav">
+  <button class="bnav-btn" data-screen="player">
+    <i class="fa fa-fire"></i><span>Player</span>
   </button>
+  <button class="bnav-btn" data-screen="library">
+    <i class="fa fa-music"></i><span>Library</span>
+  </button>
+  <button class="bnav-btn" data-screen="library" data-tab="favorites">
+    <i class="fa fa-heart"></i><span>Favorites</span>
+  </button>
+  <button class="bnav-btn" data-screen="library" data-tab="playlists">
+    <i class="fa fa-layer-group"></i><span>Playlists</span>
+  </button>
+</nav>
 
-  <!-- ===== AI PANEL ===== -->
-  <div class="ai-panel" id="aiPanel">
-    <div class="ai-panel-header">
-      <div class="ai-panel-title"><i class="fa fa-robot"></i><span>AI Assistant</span></div>
-      <button class="modal-close" id="aiPanelClose"><i class="fa fa-xmark"></i></button>
+<!-- ===================== NOW PLAYING BAR ===================== -->
+<div class="now-playing-bar" id="nowPlayingBar">
+  <div class="npb-art" id="npbArt"><i class="fa fa-music"></i></div>
+  <div class="npb-info">
+    <span class="npb-title" id="npbTitle">Not playing</span>
+    <span class="npb-artist" id="npbArtist">--</span>
+  </div>
+  <button class="npb-play" id="npbPlay"><i class="fa fa-play"></i></button>
+  <button class="npb-more"><i class="fa fa-ellipsis-vertical"></i></button>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+<!-- New Playlist -->
+<div class="modal-overlay" id="newPlaylistModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>New Playlist</h3>
+      <button class="modal-close" id="newPlaylistClose"><i class="fa fa-xmark"></i></button>
     </div>
-    <div class="chat-window" id="chatWindow"></div>
-    <div class="chat-input-row">
-      <input type="text" id="chatInput" placeholder="Ask about music..."/>
-      <button id="sendBtn"><i class="fa fa-paper-plane"></i></button>
+    <div class="modal-body">
+      <input type="text" id="playlistNameInput" class="text-input" placeholder="Playlist name..."/>
+      <button class="btn-primary" id="btnCreatePlaylist">Create Playlist</button>
     </div>
   </div>
+</div>
 
-  <audio id="audioPlayer"></audio>
-  <script src="player.js"></script>
-  <script src="ai.js"></script>
-  <script src="app.js"></script>
+<!-- Playlist Detail -->
+<div class="modal-overlay" id="playlistModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalPlaylistName">Playlist</h3>
+      <button class="modal-close" id="modalClose"><i class="fa fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <ul class="song-list" id="playlistSongList"></ul>
+      <div class="modal-add-section">
+        <p class="section-label">Add from library</p>
+        <ul class="song-list" id="modalLibrarySongs"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AI FAB ===================== -->
+<button class="ai-fab" id="aiFab"><i class="fa fa-robot"></i><span class="ai-fab-dot"></span></button>
+
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-panel-header">
+    <div class="ai-panel-title"><i class="fa fa-robot"></i><span>AI Assistant</span></div>
+    <button class="modal-close" id="aiPanelClose"><i class="fa fa-xmark"></i></button>
+  </div>
+  <div class="chat-window" id="chatWindow"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Ask about music..."/>
+    <button id="sendBtn"><i class="fa fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<audio id="audioPlayer"></audio>
+<script src="player.js"></script>
+<script src="ai.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -57,9 +57,26 @@ const Player = (() => {
   function saveFavs()      { localStorage.setItem('groovix_favs',      JSON.stringify(favIds));    }
   function savePlaylists() { localStorage.setItem('groovix_playlists', JSON.stringify(playlists)); }
 
-  function isFav(id) { return favIds.includes(id); }
+  // ---- Clean filename fallback ----
+  function cleanFilename(filename) {
+    let name = filename
+      .replace(/\.[^.]+$/, '')           // remove extension
+      .replace(/^\d+_\d+_?/g, '')        // remove leading numeric IDs like "4_60036250_"
+      .replace(/^\d+[\s_-]+/g, '')       // remove leading track numbers like "01 - " or "1_"
+      .replace(/[_]+/g, ' ')             // underscores to spaces
+      .replace(/\s{2,}/g, ' ')           // collapse multiple spaces
+      .trim();
 
-  // ---- Sort ----
+    // If "Artist - Title" pattern exists, split it
+    if (name.includes(' - ')) {
+      const parts = name.split(' - ');
+      return { title: parts.slice(1).join(' - ').trim(), artist: parts[0].trim() };
+    }
+
+    return { title: name || 'Unknown Title', artist: 'Unknown Artist' };
+  }
+
+  function isFav(id) { return favIds.includes(id); }
   function getSortedSongs(list) {
     const arr = [...list];
     switch (sortMode) {
@@ -411,17 +428,9 @@ const Player = (() => {
       const url = URL.createObjectURL(file);
       blobUrls[id] = url;
 
-      // Fallback name from filename
-      const raw = file.name.replace(/\.[^.]+$/, '');
-      let name = raw, artist = 'Unknown Artist', album = '';
-
-      if (raw.includes(' - ')) {
-        const parts = raw.split(' - ');
-        artist = parts[0].trim();
-        name = parts.slice(1).join(' - ').trim();
-      }
-
-      const song = { id, name, artist, album, duration: null, coverUrl: null };
+      // Clean filename as fallback
+      const { title, artist } = cleanFilename(file.name);
+      const song = { id, name: title, artist, album: '', duration: null, coverUrl: null };
       songs.push(song);
 
       // Read duration
@@ -432,14 +441,15 @@ const Player = (() => {
         renderList(searchInput.value);
       });
 
-      // Read ID3 tags (title, artist, album, cover art)
+      // Read real ID3 tags — overrides filename fallback if found
       if (window.jsmediatags) {
         jsmediatags.read(file, {
           onSuccess(tag) {
             const t = tag.tags;
-            if (t.title)  song.name   = t.title.trim();
-            if (t.artist) song.artist = t.artist.trim();
-            if (t.album)  song.album  = t.album.trim();
+            // Only override if tag actually has a value
+            if (t.title  && t.title.trim())  song.name   = t.title.trim();
+            if (t.artist && t.artist.trim()) song.artist = t.artist.trim();
+            if (t.album  && t.album.trim())  song.album  = t.album.trim();
 
             // Extract embedded cover art
             const pic = t.picture;
@@ -452,13 +462,11 @@ const Player = (() => {
             saveSongs();
             renderList(searchInput.value);
             renderFavorites();
-            // Update player display if this is the current song
             if (songs[currentIndex] && songs[currentIndex].id === song.id) {
               updatePlayerDisplay(song);
             }
           },
           onError() {
-            // Tags unreadable — keep filename-parsed values
             saveSongs();
             renderList(searchInput.value);
           }

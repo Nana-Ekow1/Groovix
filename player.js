@@ -340,7 +340,14 @@ const Player = (() => {
     currentIndex = index;
     const song = songs[index];
     updatePlayerDisplay(song);
-    if (!blobUrls[song.id]) return;
+
+    if (!blobUrls[song.id]) {
+      // No audio loaded — show banner and switch to player to show the state
+      showReloadBanner();
+      if (typeof switchScreen === 'function') switchScreen('player');
+      return;
+    }
+
     audio.src = blobUrls[song.id];
     audio.play().catch(() => {});
     isPlaying = true;
@@ -349,7 +356,6 @@ const Player = (() => {
     updateNowPlayingBar();
     renderList(searchInput ? searchInput.value : '');
     renderFavorites();
-    // Switch to player screen
     if (typeof switchScreen === 'function') switchScreen('player');
   }
 
@@ -395,11 +401,49 @@ const Player = (() => {
   }
 
   function addFiles(files) {
+    // Remove reload banner if present
+    const banner = document.getElementById('reloadBanner');
+    if (banner) banner.remove();
+
     Array.from(files).forEach(file => {
-      const id  = Date.now() + Math.random().toString(36).slice(2);
       const url = URL.createObjectURL(file);
-      blobUrls[id] = url;
       const { title, artist } = cleanFilename(file.name);
+
+      // Try to match an existing song by name to reconnect blob
+      const existing = songs.find(s => s.name === title || s.name === file.name.replace(/\.[^.]+$/, ''));
+      if (existing && !blobUrls[existing.id]) {
+        blobUrls[existing.id] = url;
+        const tmp = new Audio(url);
+        tmp.addEventListener('loadedmetadata', () => {
+          existing.duration = formatTime(tmp.duration);
+          saveSongs(); renderList(searchInput ? searchInput.value : '');
+        });
+        if (window.jsmediatags) {
+          jsmediatags.read(file, {
+            onSuccess(tag) {
+              const t = tag.tags;
+              if (t.title  && t.title.trim())  existing.name   = t.title.trim();
+              if (t.artist && t.artist.trim()) existing.artist = t.artist.trim();
+              if (t.album  && t.album.trim())  existing.album  = t.album.trim();
+              const pic = t.picture;
+              if (pic) {
+                const blob = new Blob([new Uint8Array(pic.data)], { type: pic.format });
+                existing.coverUrl = URL.createObjectURL(blob);
+              }
+              saveSongs();
+              renderList(searchInput ? searchInput.value : '');
+              renderFavorites();
+              if (songs[currentIndex] && songs[currentIndex].id === existing.id) updatePlayerDisplay(existing);
+            },
+            onError() { saveSongs(); renderList(searchInput ? searchInput.value : ''); }
+          });
+        }
+        return;
+      }
+
+      // New song
+      const id  = Date.now() + Math.random().toString(36).slice(2);
+      blobUrls[id] = url;
       const song = { id, name: title, artist, album: '', duration: null, coverUrl: null };
       songs.push(song);
 
@@ -505,6 +549,32 @@ const Player = (() => {
     document.getElementById('playlistNameInput').value = '';
     document.getElementById('newPlaylistModal').classList.add('open');
   });
+
+  // ---- Reload banner ----
+  function showReloadBanner() {
+    const existing = document.getElementById('reloadBanner');
+    if (existing) return;
+    const banner = document.createElement('div');
+    banner.id = 'reloadBanner';
+    banner.style.cssText = `
+      position:fixed; top:0; left:0; right:0; z-index:300;
+      background:#f59e0b; color:#000; padding:12px 16px;
+      font-size:0.88rem; font-weight:600; text-align:center;
+      display:flex; align-items:center; justify-content:center; gap:10px;
+    `;
+    banner.innerHTML = `
+      <i class="fa fa-circle-exclamation"></i>
+      Songs need to be re-added after refresh.
+      <label style="background:#000;color:#f59e0b;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;" for="fileInput">
+        <i class="fa fa-plus"></i> Add Files
+      </label>
+      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#000;font-size:1rem;cursor:pointer;margin-left:4px;">✕</button>
+    `;
+    document.body.appendChild(banner);
+  }
+
+  // On load, if we have saved songs but no blobs, show the banner
+  if (songs.length > 0) showReloadBanner();
 
   // Init
   renderList(); renderFavorites(); renderPlaylists();

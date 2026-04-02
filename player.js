@@ -125,7 +125,7 @@ const Player = (() => {
 
     if (opts.showAddToPlaylist)      rightBtns += `<button class="song-item-action btn-add-pl" data-id="${song.id}"><i class="fa fa-plus"></i></button>`;
     if (opts.showRemoveFromPlaylist) rightBtns += `<button class="song-item-action btn-rm-pl"  data-id="${song.id}"><i class="fa fa-minus"></i></button>`;
-    if (opts.showDelete !== false)   rightBtns += `<button class="song-item-delete" data-index="${realIdx}"><i class="fa fa-ellipsis-vertical"></i></button>`;
+    if (opts.showDelete !== false)   rightBtns += `<button class="song-item-menu" data-id="${song.id}" title="More options"><i class="fa fa-ellipsis-vertical"></i></button>`;
 
     const thumb = song.coverUrl
       ? `<img src="${song.coverUrl}" alt="cover"/>`
@@ -148,6 +148,13 @@ const Player = (() => {
     });
 
     li.querySelector('.btn-fav').addEventListener('click', (e) => { e.stopPropagation(); toggleFav(song.id); });
+
+    const menuBtn = li.querySelector('.song-item-menu');
+    if (menuBtn) menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = songs.findIndex(s => s.id === song.id);
+      if (typeof window.openContextMenu === 'function') window.openContextMenu(idx >= 0 ? idx : realIdx);
+    });
 
     const del = li.querySelector('.song-item-delete');
     if (del) del.addEventListener('click', (e) => { e.stopPropagation(); removeSong(realIdx); });
@@ -550,7 +557,14 @@ const Player = (() => {
     if (isRepeat) { audio.currentTime = 0; audio.play(); } else { nextSong(); }
   });
 
-  fileInput.addEventListener('change', (e) => addFiles(e.target.files));
+  fileInput.addEventListener('change', (e) => {
+    const prevCount = songs.length;
+    addFiles(e.target.files);
+    // Auto-play first new song if nothing is playing
+    if (currentIndex === -1 && e.target.files.length > 0) {
+      setTimeout(() => playSong(prevCount), 400);
+    }
+  });
   if (searchInput) searchInput.addEventListener('input', () => renderList(searchInput.value));
   if (sortSelect)  sortSelect.addEventListener('change', () => { sortMode = sortSelect.value; renderList(searchInput ? searchInput.value : ''); });
 
@@ -574,7 +588,18 @@ const Player = (() => {
   }
 
   if (grantFolderBtn) grantFolderBtn.addEventListener('click', async () => {
-    if (!('showDirectoryPicker' in window)) { setFolderStatus('<i class="fa fa-circle-exclamation"></i> Use Chrome or Edge.', 'error'); return; }
+    // Mobile browsers don't support showDirectoryPicker — use file input instead
+    if (!('showDirectoryPicker' in window)) {
+      const mobileInput = document.createElement('input');
+      mobileInput.type = 'file';
+      mobileInput.accept = 'audio/*';
+      mobileInput.multiple = true;
+      mobileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) addFiles(e.target.files);
+      });
+      mobileInput.click();
+      return;
+    }
     try {
       setFolderStatus('<i class="fa fa-spinner fa-spin"></i> Waiting...', 'loading');
       const dir = await window.showDirectoryPicker({ mode: 'read' });
@@ -582,8 +607,13 @@ const Player = (() => {
       const entries = await scanDirectory(dir);
       if (!entries.length) { setFolderStatus('<i class="fa fa-circle-info"></i> No audio files found.', ''); return; }
       const files = await Promise.all(entries.map(e => e.getFile()));
+      const prevCount = songs.length;
       addFiles(files);
       setFolderStatus(`<i class="fa fa-circle-check"></i> Loaded <b>${entries.length}</b> song(s) from <b>${dir.name}</b>`, 'success');
+      // Auto-play first new song
+      if (currentIndex === -1 && songs.length > prevCount) {
+        setTimeout(() => playSong(prevCount), 300);
+      }
     } catch (err) {
       if (err.name === 'AbortError') setFolderStatus('<i class="fa fa-circle-xmark"></i> Cancelled.', '');
       else setFolderStatus(`<i class="fa fa-circle-exclamation"></i> ${err.message}`, 'error');

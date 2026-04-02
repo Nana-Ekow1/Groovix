@@ -183,11 +183,7 @@ document.getElementById('ctxAskAI').addEventListener('click', () => {
 
 // Delete
 document.getElementById('ctxDelete').addEventListener('click', () => {
-  if (ctxTargetIndex >= 0) Player.playSong && Player.removeSong
-    ? Player.removeSong(ctxTargetIndex)
-    : null;
-  // Fallback: just re-render
-  Player.renderList('');
+  if (ctxTargetIndex >= 0) Player.removeSong(ctxTargetIndex);
   closeContextMenu();
 });
 
@@ -202,10 +198,10 @@ window.openContextMenu = openContextMenu;
 
 // Override song-item-delete to open context menu instead
 document.addEventListener('click', (e) => {
-  const delBtn = e.target.closest('.song-item-delete');
-  if (delBtn) {
+  const menuBtn = e.target.closest('.song-item-menu');
+  if (menuBtn) {
     e.stopPropagation();
-    const li = delBtn.closest('.song-item');
+    const li = menuBtn.closest('.song-item');
     if (li) openContextMenu(parseInt(li.dataset.index));
   }
 });

@@ -4,18 +4,27 @@ const AI = (() => {
   const chatInput  = document.getElementById('chatInput');
   const sendBtn    = document.getElementById('sendBtn');
 
-  // ---- Download sources ----
+  // ---- Gemini API config ----
+  // Get a FREE key at: https://aistudio.google.com/app/apikey
+  const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY';
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  const SYSTEM_PROMPT = `You are Groovix AI, a music expert assistant built into the Groovix music player app.
+You know everything about music worldwide — artists, songs, albums, genres, music history, lyrics meaning, chart performance, collaborations, awards, and more.
+You answer like a knowledgeable music journalist — friendly, conversational, and detailed.
+Keep responses concise but informative. Use plain text, no markdown symbols like ** or ##.
+If asked about downloading music, recommend free legal sources: YouTube (via yt-dlp), SoundCloud, Free Music Archive, Jamendo, Bandcamp.
+Never recommend paid streaming apps like Spotify, Apple Music, or Audiomack.
+If asked about the current song or artist playing, use the context provided.`;
+
+  // ---- Download sources (offline fallback) ----
   const downloadSources = [
     { name: 'YouTube (via yt-dlp)', url: 'https://github.com/yt-dlp/yt-dlp', desc: 'Free open-source tool to download audio from YouTube' },
     { name: 'SoundCloud',           url: 'https://soundcloud.com',            desc: 'Many artists offer free downloads on their pages' },
     { name: 'Free Music Archive',   url: 'https://freemusicarchive.org',      desc: 'Thousands of free, legal, high-quality downloads' },
     { name: 'Jamendo',              url: 'https://www.jamendo.com',           desc: 'Free music from independent artists under Creative Commons' },
     { name: 'Bandcamp',             url: 'https://bandcamp.com',              desc: 'Many artists offer free or pay-what-you-want downloads' },
-    { name: 'ccMixter',             url: 'https://ccmixter.org',              desc: 'Creative Commons licensed music, free to download' },
     { name: 'Internet Archive',     url: 'https://archive.org/details/audio', desc: 'Massive collection of public domain and free music' },
-    { name: 'Musopen',              url: 'https://musopen.org',               desc: 'Free classical music recordings' },
-    { name: 'NoiseTrade',           url: 'https://noisetrade.com',            desc: 'Artists share free music in exchange for your email' },
-    { name: 'Looperman',            url: 'https://www.looperman.com',         desc: 'Free loops, acapellas and samples from artists worldwide' },
   ];
 
   // ---- Artist database ----
@@ -388,23 +397,85 @@ Then add the MP3 to your Groovix library.`;
     if (el) el.remove();
   }
 
-  function send() {
+  // Build context about current song for Gemini
+  function getCurrentContext() {
+    const song = Player.getCurrentSong();
+    if (!song) return '';
+    return `\n\n[Context: The user is currently playing "${song.name}" by "${song.artist || 'Unknown Artist'}" in the Groovix app.]`;
+  }
+
+  // Format Gemini plain text to safe HTML
+  function formatResponse(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/\*(.+?)\*/g, '<i>$1</i>');
+  }
+
+  // Call Gemini API
+  async function askGemini(userMsg) {
+    const context = getCurrentContext();
+    const fullPrompt = SYSTEM_PROMPT + context + '\n\nUser: ' + userMsg;
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 600 }
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not get a response.';
+  }
+
+  // Offline fallback for when no API key or no internet
+  function offlineFallback(msg) {
+    return processMessage(msg);
+  }
+
+  async function send() {
     const msg = chatInput.value.trim();
     if (!msg) return;
     chatInput.value = '';
     appendMessage('user', msg);
     showTyping();
-    setTimeout(() => {
+
+    // If no API key set, use local knowledge base
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY') {
+      setTimeout(() => {
+        removeTyping();
+        appendMessage('ai', offlineFallback(msg));
+      }, 500);
+      return;
+    }
+
+    try {
+      const reply = await askGemini(msg);
       removeTyping();
-      appendMessage('ai', processMessage(msg));
-    }, 500 + Math.random() * 400);
+      appendMessage('ai', formatResponse(reply));
+    } catch (err) {
+      removeTyping();
+      // Fall back to local knowledge base on error
+      appendMessage('ai', offlineFallback(msg));
+    }
   }
 
   sendBtn.addEventListener('click', send);
   chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
 
   setTimeout(() => {
-    appendMessage('ai', `Hey! I'm your Groovix AI assistant. Ask me about any artist, song, or genre — or ask what's currently playing. What's on your mind?`);
+    const hasKey = GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY';
+    appendMessage('ai', hasKey
+      ? `Hey! I'm your Groovix AI — powered by Gemini. Ask me anything about any artist, song, album, or genre worldwide. What's on your mind?`
+      : `Hey! I'm your Groovix AI assistant. Ask me about artists, songs, genres, or where to download music. To unlock full AI power, add your free Gemini API key in ai.js.`
+    );
   }, 300);
 
   return { send, appendMessage };

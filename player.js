@@ -455,9 +455,10 @@ const Player = (() => {
   }
 
   function addFiles(files) {
-    // Remove reload banner if present
-    const banner = document.getElementById('reloadBanner');
-    if (banner) banner.remove();
+    // Clear reload prompt from album art if showing
+    if (albumArt.querySelector('label[for="fileInput"]')) {
+      albumArt.innerHTML = '<i class="fa fa-music"></i>';
+    }
 
     Array.from(files).forEach(file => {
       const url = URL.createObjectURL(file);
@@ -627,27 +628,22 @@ const Player = (() => {
     document.getElementById('newPlaylistModal').classList.add('open');
   });
 
-  // ---- Reload banner ----
+  // ---- Reload prompt (shown inside player, not as top banner) ----
   function showReloadBanner() {
-    const existing = document.getElementById('reloadBanner');
-    if (existing) return;
-    const banner = document.createElement('div');
-    banner.id = 'reloadBanner';
-    banner.style.cssText = `
-      position:fixed; top:0; left:0; right:0; z-index:300;
-      background:#f59e0b; color:#000; padding:12px 16px;
-      font-size:0.88rem; font-weight:600; text-align:center;
-      display:flex; align-items:center; justify-content:center; gap:10px;
+    // Remove any existing banner
+    const old = document.getElementById('reloadBanner');
+    if (old) old.remove();
+
+    // Show prompt inside the album art area instead
+    albumArt.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;text-align:center;">
+        <i class="fa fa-circle-exclamation" style="font-size:2rem;color:#f59e0b"></i>
+        <p style="font-size:0.85rem;color:#fff;line-height:1.5">Tap below to re-add your songs</p>
+        <label for="fileInput" style="background:#f59e0b;color:#000;padding:10px 22px;border-radius:20px;cursor:pointer;font-size:0.85rem;font-weight:700;">
+          <i class="fa fa-plus"></i> Add Songs
+        </label>
+      </div>
     `;
-    banner.innerHTML = `
-      <i class="fa fa-circle-exclamation"></i>
-      Songs need to be re-added after refresh.
-      <label style="background:#000;color:#f59e0b;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;" for="fileInput">
-        <i class="fa fa-plus"></i> Add Files
-      </label>
-      <button onclick="this.parentElement.remove()" style="background:none;border:none;color:#000;font-size:1rem;cursor:pointer;margin-left:4px;">✕</button>
-    `;
-    document.body.appendChild(banner);
   }
 
   // On load, if we have saved songs but no blobs, show the banner

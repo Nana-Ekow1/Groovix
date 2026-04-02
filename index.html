@@ -73,6 +73,17 @@
             <i class="fa fa-volume-high"></i>
           </div>
         </div>
+        <!-- Song list on home page -->
+        <div class="home-list-section">
+          <div class="home-list-header">
+            <span>All Songs</span>
+            <label class="icon-btn accent" for="fileInput2" title="Add songs"><i class="fa fa-plus"></i></label>
+            <input type="file" id="fileInput2" accept="audio/*" multiple hidden/>
+          </div>
+          <ul class="song-list" id="homeSongList">
+            <li class="empty-msg"><i class="fa fa-music" style="font-size:1.6rem;margin-bottom:8px;opacity:.3"></i><br>No songs yet. Tap + to add.</li>
+          </ul>
+        </div>
       </section>
 
       <!-- Library View -->
@@ -128,6 +139,16 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- ===== NOW PLAYING BAR (above bottom nav, other views) ===== -->
+  <div class="now-playing-bar" id="nowPlayingBar">
+    <div class="npb-art" id="npbArt"><i class="fa fa-music"></i></div>
+    <div class="npb-info">
+      <span class="npb-title" id="npbTitle">Not playing</span>
+      <span class="npb-artist" id="npbArtist">--</span>
+    </div>
+    <button class="npb-play" id="npbPlay"><i class="fa fa-play"></i></button>
   </div>
 
   <!-- ===== MOBILE BOTTOM NAV ===== -->

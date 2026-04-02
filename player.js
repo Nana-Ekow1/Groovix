@@ -26,6 +26,7 @@ const Player = (() => {
   const songArtistEl  = document.getElementById('songArtist');
   const albumArt      = document.getElementById('albumArt');
   const songList      = document.getElementById('songList');
+  const homeSongList  = document.getElementById('homeSongList');
   const favoritesList = document.getElementById('favoritesList');
   const playlistsGrid = document.getElementById('playlistsGrid');
   const fileInput     = document.getElementById('fileInput');
@@ -139,6 +140,19 @@ const Player = (() => {
     }
 
     return li;
+  }
+
+  // ---- Render Home Song List ----
+  function renderHomeList() {
+    if (!homeSongList) return;
+    homeSongList.innerHTML = '';
+    if (songs.length === 0) {
+      homeSongList.innerHTML = '<li class="empty-msg"><i class="fa fa-music" style="font-size:1.6rem;margin-bottom:8px;opacity:.3"></i><br>No songs yet. Tap + to add.</li>';
+      return;
+    }
+    songs.forEach((song, idx) => {
+      homeSongList.appendChild(makeSongItem(song, idx, idx === currentIndex, { showDelete: false }));
+    });
   }
 
   // ---- Render Library ----
@@ -346,6 +360,35 @@ const Player = (() => {
     if (song) toggleFav(song.id);
   });
 
+  // ---- Now Playing Bar ----
+  const nowPlayingBar = document.getElementById('nowPlayingBar');
+  const npbArt        = document.getElementById('npbArt');
+  const npbTitle      = document.getElementById('npbTitle');
+  const npbArtist     = document.getElementById('npbArtist');
+  const npbPlay       = document.getElementById('npbPlay');
+
+  function updateNowPlayingBar() {
+    const song = songs[currentIndex];
+    if (!song) return;
+    npbTitle.textContent  = song.name;
+    npbArtist.textContent = song.artist || 'Unknown Artist';
+    npbArt.innerHTML = song.coverUrl
+      ? `<img src="${song.coverUrl}" alt="cover"/>`
+      : '<i class="fa fa-music"></i>';
+    npbPlay.innerHTML = isPlaying ? '<i class="fa fa-pause"></i>' : '<i class="fa fa-play"></i>';
+  }
+
+  npbPlay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isPlaying) {
+      audio.pause(); isPlaying = false; albumArt.classList.remove('playing');
+    } else {
+      audio.play(); isPlaying = true; albumArt.classList.add('playing');
+    }
+    updatePlayBtn();
+    updateNowPlayingBar();
+  });
+
   // ---- Playback ----
   function updatePlayerDisplay(song) {
     songTitleEl.textContent  = song.name;
@@ -356,6 +399,7 @@ const Player = (() => {
       albumArt.innerHTML = '<i class="fa fa-music"></i>';
     }
     updatePlayerHeartBtn();
+    updateNowPlayingBar();
   }
 
   function playSong(index) {
@@ -372,7 +416,9 @@ const Player = (() => {
     isPlaying = true;
     updatePlayBtn();
     albumArt.classList.add('playing');
+    updateNowPlayingBar();
     renderList(searchInput.value);
+    renderHomeList();
     renderFavorites();
   }
 
@@ -461,6 +507,7 @@ const Player = (() => {
 
             saveSongs();
             renderList(searchInput.value);
+            renderHomeList();
             renderFavorites();
             if (songs[currentIndex] && songs[currentIndex].id === song.id) {
               updatePlayerDisplay(song);
@@ -563,12 +610,17 @@ const Player = (() => {
 
   // Init
   renderList();
+  renderHomeList();
   renderFavorites();
   renderPlaylists();
+
+  // fileInput2 on player home page
+  const fileInput2 = document.getElementById('fileInput2');
+  if (fileInput2) fileInput2.addEventListener('change', (e) => addFiles(e.target.files));
 
   return {
     getSongs: () => songs,
     getCurrentSong: () => songs[currentIndex] || null,
-    playSong, addFiles, renderList, renderFavorites, renderPlaylists
+    playSong, addFiles, renderList, renderHomeList, renderFavorites, renderPlaylists
   };
 })();

@@ -11,6 +11,17 @@ window.addEventListener('load', () => {
 const navBtns  = document.querySelectorAll('.nav-btn');
 const bnavBtns = document.querySelectorAll('.bnav-btn');
 const views    = document.querySelectorAll('.view');
+const nowPlayingBar = document.getElementById('nowPlayingBar');
+
+function updateNowPlayingBarVisibility(target) {
+  // Show bar on all views except player, only when a song is loaded
+  const hasSong = Player.getSongs().length > 0 && Player.getCurrentSong();
+  if (target !== 'player' && hasSong) {
+    nowPlayingBar.classList.add('visible');
+  } else {
+    nowPlayingBar.classList.remove('visible');
+  }
+}
 
 function switchView(target) {
   navBtns.forEach(b  => b.classList.toggle('active',  b.dataset.view === target));
@@ -21,10 +32,16 @@ function switchView(target) {
   if (target === 'library')   Player.renderList(document.getElementById('searchInput').value);
   if (target === 'favorites') Player.renderFavorites();
   if (target === 'playlists') Player.renderPlaylists();
+  if (target === 'player')    Player.renderHomeList();
+
+  updateNowPlayingBarVisibility(target);
 }
 
 navBtns.forEach(b  => b.addEventListener('click', () => switchView(b.dataset.view)));
 bnavBtns.forEach(b => b.addEventListener('click', () => switchView(b.dataset.view)));
+
+// Tap now-playing bar → go to player
+nowPlayingBar.addEventListener('click', () => switchView('player'));
 
 // ---- AI Panel ----
 const aiFab        = document.getElementById('aiFab');

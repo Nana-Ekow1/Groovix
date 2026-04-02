@@ -106,5 +106,176 @@ libScreen.addEventListener('drop', (e) => {
   if (files.length) Player.addFiles(files);
 });
 
+// ---- Three-dot context menu ----
+const contextMenu     = document.getElementById('contextMenu');
+const contextBackdrop = document.getElementById('contextBackdrop');
+const ctxSongName     = document.getElementById('contextMenuSongName');
+let ctxTargetIndex    = -1;
+let queue             = [];
+
+function openContextMenu(songIndex) {
+  ctxTargetIndex = songIndex;
+  const song = Player.getSongs()[songIndex];
+  ctxSongName.textContent = song ? `${song.name} — ${song.artist || 'Unknown'}` : 'Options';
+  // Update like label
+  const favIds = JSON.parse(localStorage.getItem('groovix_favs') || '[]');
+  const liked  = song && favIds.includes(song.id);
+  document.getElementById('ctxLike').innerHTML = liked
+    ? '<i class="fa-solid fa-heart" style="color:#f43f5e"></i> Unlike'
+    : '<i class="fa-regular fa-heart"></i> Like';
+  contextMenu.classList.add('open');
+  contextBackdrop.classList.add('open');
+}
+
+function closeContextMenu() {
+  contextMenu.classList.remove('open');
+  contextBackdrop.classList.remove('open');
+}
+
+contextBackdrop.addEventListener('click', closeContextMenu);
+document.getElementById('ctxCancel').addEventListener('click', closeContextMenu);
+
+// Play Next
+document.getElementById('ctxPlayNext').addEventListener('click', () => {
+  if (ctxTargetIndex >= 0) {
+    queue.unshift(ctxTargetIndex);
+    showToast('Will play next');
+  }
+  closeContextMenu();
+});
+
+// Add to Queue
+document.getElementById('ctxQueue').addEventListener('click', () => {
+  if (ctxTargetIndex >= 0) {
+    queue.push(ctxTargetIndex);
+    showToast('Added to queue');
+  }
+  closeContextMenu();
+});
+
+// Like
+document.getElementById('ctxLike').addEventListener('click', () => {
+  const songs  = Player.getSongs();
+  const song   = songs[ctxTargetIndex];
+  if (song) {
+    let favIds = JSON.parse(localStorage.getItem('groovix_favs') || '[]');
+    if (favIds.includes(song.id)) favIds = favIds.filter(id => id !== song.id);
+    else favIds.push(song.id);
+    localStorage.setItem('groovix_favs', JSON.stringify(favIds));
+    Player.renderList('');
+    Player.renderFavorites();
+    showToast(favIds.includes(song.id) ? 'Added to Favorites' : 'Removed from Favorites');
+  }
+  closeContextMenu();
+});
+
+// Ask AI About Track
+document.getElementById('ctxAskAI').addEventListener('click', () => {
+  const song = Player.getSongs()[ctxTargetIndex];
+  if (song) {
+    const q = `Tell me about the song "${song.name}" by ${song.artist || 'Unknown Artist'}`;
+    document.getElementById('chatInput').value = q;
+    aiPanel.classList.add('open');
+    document.getElementById('chatInput').focus();
+  }
+  closeContextMenu();
+});
+
+// Delete
+document.getElementById('ctxDelete').addEventListener('click', () => {
+  if (ctxTargetIndex >= 0) Player.playSong && Player.removeSong
+    ? Player.removeSong(ctxTargetIndex)
+    : null;
+  // Fallback: just re-render
+  Player.renderList('');
+  closeContextMenu();
+});
+
+// Feedback shortcut from menu
+document.getElementById('ctxFeedback').addEventListener('click', () => {
+  closeContextMenu();
+  openFeedback();
+});
+
+// Expose openContextMenu globally so song items can call it
+window.openContextMenu = openContextMenu;
+
+// Override song-item-delete to open context menu instead
+document.addEventListener('click', (e) => {
+  const delBtn = e.target.closest('.song-item-delete');
+  if (delBtn) {
+    e.stopPropagation();
+    const li = delBtn.closest('.song-item');
+    if (li) openContextMenu(parseInt(li.dataset.index));
+  }
+});
+
+// Three dots on player screen
+document.getElementById('btnMore').addEventListener('click', () => {
+  const song = Player.getCurrentSong();
+  const songs = Player.getSongs();
+  const idx   = songs.indexOf(song);
+  openContextMenu(idx >= 0 ? idx : 0);
+});
+
+// ---- Toast ----
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = `
+    position:fixed; bottom:calc(var(--bnav-h) + 80px); left:50%; transform:translateX(-50%);
+    background:#333; color:#fff; padding:10px 20px; border-radius:20px;
+    font-size:0.85rem; z-index:400; white-space:nowrap;
+    animation: fadeInOut 2s ease forwards;
+  `;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+// Add toast animation
+const toastStyle = document.createElement('style');
+toastStyle.textContent = `@keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 15%{opacity:1;transform:translateX(-50%) translateY(0)} 80%{opacity:1} 100%{opacity:0} }`;
+document.head.appendChild(toastStyle);
+
+// ---- Feedback ----
+const feedbackModal = document.getElementById('feedbackModal');
+let selectedStars   = 0;
+
+function openFeedback() {
+  selectedStars = 0;
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+  document.getElementById('feedbackText').value = '';
+  feedbackModal.classList.add('open');
+}
+
+document.getElementById('feedbackClose').addEventListener('click', () => feedbackModal.classList.remove('open'));
+feedbackModal.addEventListener('click', (e) => { if (e.target === feedbackModal) feedbackModal.classList.remove('open'); });
+
+document.getElementById('bnavFeedback').addEventListener('click', openFeedback);
+
+document.querySelectorAll('.star').forEach(star => {
+  star.addEventListener('click', () => {
+    selectedStars = parseInt(star.dataset.val);
+    document.querySelectorAll('.star').forEach((s, i) => {
+      s.classList.toggle('active', i < selectedStars);
+      s.innerHTML = i < selectedStars ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+    });
+  });
+});
+
+document.getElementById('btnSubmitFeedback').addEventListener('click', () => {
+  const text = document.getElementById('feedbackText').value.trim();
+  if (!selectedStars) { showToast('Please select a star rating'); return; }
+
+  // Save feedback to localStorage
+  const feedbacks = JSON.parse(localStorage.getItem('groovix_feedback') || '[]');
+  feedbacks.push({ stars: selectedStars, text, date: new Date().toISOString() });
+  localStorage.setItem('groovix_feedback', JSON.stringify(feedbacks));
+
+  feedbackModal.classList.remove('open');
+  showToast(`Thanks for your ${selectedStars}★ feedback!`);
+});
+
 // Init: start on player screen
 switchScreen('player');
+

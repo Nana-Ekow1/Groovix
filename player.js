@@ -584,6 +584,7 @@ const Player = (() => {
     getCurrentSong: () => songs[currentIndex] || null,
     isPlaying: () => isPlaying,
     playSong, addFiles, renderList, renderFavorites, renderPlaylists,
+    removeSong,
     showNowPlayingBar: (show) => { if (show && songs[currentIndex]) nowPlayingBar.classList.add('visible'); else nowPlayingBar.classList.remove('visible'); }
   };
 })();

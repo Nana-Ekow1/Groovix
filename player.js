@@ -50,7 +50,7 @@ const Player = (() => {
 
   function saveSongs() {
     localStorage.setItem('groovix_songs', JSON.stringify(
-      songs.map(s => ({ id: s.id, name: s.name, artist: s.artist, duration: s.duration }))
+      songs.map(s => ({ id: s.id, name: s.name, artist: s.artist, album: s.album, duration: s.duration }))
     ));
   }
 
@@ -94,10 +94,10 @@ const Player = (() => {
     }
 
     li.innerHTML = `
-      <div class="song-icon"><i class="fa fa-music"></i></div>
+      <div class="song-icon">${song.coverUrl ? `<img src="${song.coverUrl}" alt="cover" style="width:100%;height:100%;object-fit:cover;border-radius:8px"/>` : '<i class="fa fa-music"></i>'}</div>
       <div class="song-item-info">
         <div class="title">${song.name}</div>
-        <div class="artist">${song.artist || 'Unknown Artist'}</div>
+        <div class="artist">${song.artist || 'Unknown Artist'}${song.album ? ' · ' + song.album : ''}</div>
       </div>
       <span class="song-item-duration">${song.duration || '--'}</span>
       <button class="song-item-action btn-fav${favActive}" data-id="${song.id}" title="Favorite">
@@ -330,26 +330,31 @@ const Player = (() => {
   });
 
   // ---- Playback ----
+  function updatePlayerDisplay(song) {
+    songTitleEl.textContent  = song.name;
+    songArtistEl.textContent = song.artist || 'Unknown Artist';
+    if (song.coverUrl) {
+      albumArt.innerHTML = `<img src="${song.coverUrl}" alt="cover"/>`;
+    } else {
+      albumArt.innerHTML = '<i class="fa fa-music"></i>';
+    }
+    updatePlayerHeartBtn();
+  }
+
   function playSong(index) {
     if (index < 0 || index >= songs.length) return;
     currentIndex = index;
     const song = songs[index];
 
-    if (!blobUrls[song.id]) {
-      songTitleEl.textContent = song.name;
-      songArtistEl.textContent = song.artist || 'Unknown Artist';
-      updatePlayerHeartBtn();
-      return;
-    }
+    updatePlayerDisplay(song);
+
+    if (!blobUrls[song.id]) return;
 
     audio.src = blobUrls[song.id];
-    audio.play();
+    audio.play().catch(() => {});
     isPlaying = true;
     updatePlayBtn();
     albumArt.classList.add('playing');
-    songTitleEl.textContent = song.name;
-    songArtistEl.textContent = song.artist || 'Unknown Artist';
-    updatePlayerHeartBtn();
     renderList(searchInput.value);
     renderFavorites();
   }
@@ -405,22 +410,63 @@ const Player = (() => {
       const id = Date.now() + Math.random().toString(36).slice(2);
       const url = URL.createObjectURL(file);
       blobUrls[id] = url;
+
+      // Fallback name from filename
       const raw = file.name.replace(/\.[^.]+$/, '');
-      let name = raw, artist = 'Unknown Artist';
+      let name = raw, artist = 'Unknown Artist', album = '';
+
       if (raw.includes(' - ')) {
         const parts = raw.split(' - ');
         artist = parts[0].trim();
         name = parts.slice(1).join(' - ').trim();
       }
-      const song = { id, name, artist, duration: null };
+
+      const song = { id, name, artist, album, duration: null, coverUrl: null };
       songs.push(song);
+
+      // Read duration
       const tmpAudio = new Audio(url);
       tmpAudio.addEventListener('loadedmetadata', () => {
         song.duration = formatTime(tmpAudio.duration);
-        saveSongs(); renderList(searchInput.value);
+        saveSongs();
+        renderList(searchInput.value);
       });
+
+      // Read ID3 tags (title, artist, album, cover art)
+      if (window.jsmediatags) {
+        jsmediatags.read(file, {
+          onSuccess(tag) {
+            const t = tag.tags;
+            if (t.title)  song.name   = t.title.trim();
+            if (t.artist) song.artist = t.artist.trim();
+            if (t.album)  song.album  = t.album.trim();
+
+            // Extract embedded cover art
+            const pic = t.picture;
+            if (pic) {
+              const bytes = new Uint8Array(pic.data);
+              const blob  = new Blob([bytes], { type: pic.format });
+              song.coverUrl = URL.createObjectURL(blob);
+            }
+
+            saveSongs();
+            renderList(searchInput.value);
+            renderFavorites();
+            // Update player display if this is the current song
+            if (songs[currentIndex] && songs[currentIndex].id === song.id) {
+              updatePlayerDisplay(song);
+            }
+          },
+          onError() {
+            // Tags unreadable — keep filename-parsed values
+            saveSongs();
+            renderList(searchInput.value);
+          }
+        });
+      }
     });
-    saveSongs(); renderList(searchInput.value);
+    saveSongs();
+    renderList(searchInput.value);
   }
 
   // ---- Controls ----

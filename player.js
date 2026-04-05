@@ -727,6 +727,51 @@ const Player = (() => {
   // On load, if we have saved songs but no blobs, show the banner
   if (songs.length > 0) showReloadBanner();
 
+  // ---- Clear Everything Function ----
+  function clearEverything() {
+    // Stop playback
+    audio.pause();
+    isPlaying = false;
+    currentIndex = -1;
+    
+    // Clear all blob URLs
+    Object.values(blobUrls).forEach(url => URL.revokeObjectURL(url));
+    Object.keys(blobUrls).forEach(key => delete blobUrls[key]);
+    
+    // Clear all arrays
+    songs.length = 0;
+    favIds.length = 0;
+    playlists.length = 0;
+    
+    // Clear localStorage
+    localStorage.removeItem('groovix_songs');
+    localStorage.removeItem('groovix_favs');
+    localStorage.removeItem('groovix_playlists');
+    localStorage.removeItem('groovix_feedback');
+    localStorage.removeItem('groovix_fab');
+    
+    // Reset UI
+    songTitleEl.textContent = 'No song selected';
+    songArtistEl.textContent = '--';
+    albumArt.innerHTML = '<i class="fa fa-music"></i>';
+    albumArt.classList.remove('playing');
+    updatePlayBtn();
+    updateHeartBtns();
+    updateNowPlayingBar();
+    
+    // Clear lists
+    renderList();
+    renderFavorites();
+    renderPlaylists();
+    
+    // Hide reload banner if showing
+    if (albumArt.querySelector('label[for="fileInput"]')) {
+      albumArt.innerHTML = '<i class="fa fa-music"></i>';
+    }
+    
+    return true;
+  }
+
   // Init
   renderList(); renderFavorites(); renderPlaylists();
 
@@ -735,7 +780,7 @@ const Player = (() => {
     getCurrentSong: () => songs[currentIndex] || null,
     isPlaying: () => isPlaying,
     playSong, addFiles, renderList, renderFavorites, renderPlaylists,
-    removeSong, removeSongsByIds,
+    removeSong, removeSongsByIds, clearEverything,
     showNowPlayingBar: (show) => { if (show && songs[currentIndex]) nowPlayingBar.classList.add('visible'); else nowPlayingBar.classList.remove('visible'); }
   };
 })();

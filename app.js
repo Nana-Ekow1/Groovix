@@ -58,6 +58,15 @@ bnavBtns.forEach(btn => {
 document.getElementById('btnGoLibrary').addEventListener('click', () => switchScreen('library'));
 document.getElementById('btnQueue').addEventListener('click', () => switchScreen('library'));
 
+// Clear All button
+document.getElementById('btnClearAll').addEventListener('click', () => {
+  if (confirm('Are you sure you want to clear ALL songs, favorites, playlists, and feedback? This cannot be undone.')) {
+    if (Player.clearEverything()) {
+      showToast('Everything cleared successfully');
+    }
+  }
+});
+
 // Now playing bar tap → go to player
 document.getElementById('nowPlayingBar').addEventListener('click', (e) => {
   if (!e.target.closest('#npbPlay')) switchScreen('player');

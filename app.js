@@ -60,7 +60,7 @@ document.getElementById('btnQueue').addEventListener('click', () => switchScreen
 
 // Clear All button
 document.getElementById('btnClearAll').addEventListener('click', () => {
-  if (confirm('Are you sure you want to clear ALL songs, favorites, playlists, and feedback? This cannot be undone.')) {
+  if (confirm('Are you sure you want to clear ALL songs, favorites, and playlists? This cannot be undone.')) {
     if (Player.clearEverything()) {
       showToast('Everything cleared successfully');
     }
@@ -196,11 +196,7 @@ document.getElementById('ctxDelete').addEventListener('click', () => {
   closeContextMenu();
 });
 
-// Feedback shortcut from menu
-document.getElementById('ctxFeedback').addEventListener('click', () => {
-  closeContextMenu();
-  openFeedback();
-});
+
 
 // Expose openContextMenu globally so song items can call it
 window.openContextMenu = openContextMenu;
@@ -242,44 +238,7 @@ const toastStyle = document.createElement('style');
 toastStyle.textContent = `@keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 15%{opacity:1;transform:translateX(-50%) translateY(0)} 80%{opacity:1} 100%{opacity:0} }`;
 document.head.appendChild(toastStyle);
 
-// ---- Feedback ----
-const feedbackModal = document.getElementById('feedbackModal');
-let selectedStars   = 0;
 
-function openFeedback() {
-  selectedStars = 0;
-  document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
-  document.getElementById('feedbackText').value = '';
-  feedbackModal.classList.add('open');
-}
-
-document.getElementById('feedbackClose').addEventListener('click', () => feedbackModal.classList.remove('open'));
-feedbackModal.addEventListener('click', (e) => { if (e.target === feedbackModal) feedbackModal.classList.remove('open'); });
-
-document.getElementById('bnavFeedback').addEventListener('click', openFeedback);
-
-document.querySelectorAll('.star').forEach(star => {
-  star.addEventListener('click', () => {
-    selectedStars = parseInt(star.dataset.val);
-    document.querySelectorAll('.star').forEach((s, i) => {
-      s.classList.toggle('active', i < selectedStars);
-      s.innerHTML = i < selectedStars ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
-    });
-  });
-});
-
-document.getElementById('btnSubmitFeedback').addEventListener('click', () => {
-  const text = document.getElementById('feedbackText').value.trim();
-  if (!selectedStars) { showToast('Please select a star rating'); return; }
-
-  // Save feedback to localStorage
-  const feedbacks = JSON.parse(localStorage.getItem('groovix_feedback') || '[]');
-  feedbacks.push({ stars: selectedStars, text, date: new Date().toISOString() });
-  localStorage.setItem('groovix_feedback', JSON.stringify(feedbacks));
-
-  feedbackModal.classList.remove('open');
-  showToast(`Thanks for your ${selectedStars}★ feedback!`);
-});
 
 // ---- Bulk Select Mode ----
 let selectMode = false;

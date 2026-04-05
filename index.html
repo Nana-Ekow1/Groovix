@@ -186,9 +186,6 @@
   <button class="bnav-btn" data-screen="library" data-tab="playlists">
     <i class="fa fa-layer-group"></i><span>Playlists</span>
   </button>
-  <button class="bnav-btn" id="bnavFeedback">
-    <i class="fa fa-comment-dots"></i><span>Feedback</span>
-  </button>
 </nav>
 
 <!-- ===================== NOW PLAYING BAR ===================== -->
@@ -210,33 +207,11 @@
   <button class="context-item" id="ctxLike"><i class="fa-regular fa-heart"></i> Like</button>
   <button class="context-item" id="ctxAskAI"><i class="fa fa-robot"></i> Ask AI About Track</button>
   <button class="context-item" id="ctxDelete"><i class="fa fa-trash"></i> Delete</button>
-  <div class="context-divider"></div>
-  <button class="context-item" id="ctxFeedback"><i class="fa fa-comment-dots"></i> Leave Feedback</button>
   <button class="context-item context-cancel" id="ctxCancel">Cancel</button>
 </div>
 <div class="context-backdrop" id="contextBackdrop"></div>
 
-<!-- ===================== FEEDBACK MODAL ===================== -->
-<div class="modal-overlay" id="feedbackModal">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h3><i class="fa fa-comment-dots"></i> Feedback</h3>
-      <button class="modal-close" id="feedbackClose"><i class="fa fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px">How are you enjoying Groovix? Let us know!</p>
-      <div class="star-rating" id="starRating">
-        <button class="star" data-val="1"><i class="fa-regular fa-star"></i></button>
-        <button class="star" data-val="2"><i class="fa-regular fa-star"></i></button>
-        <button class="star" data-val="3"><i class="fa-regular fa-star"></i></button>
-        <button class="star" data-val="4"><i class="fa-regular fa-star"></i></button>
-        <button class="star" data-val="5"><i class="fa-regular fa-star"></i></button>
-      </div>
-      <textarea id="feedbackText" class="text-input" placeholder="Tell us what you think..." rows="4" style="resize:none;margin-top:12px"></textarea>
-      <button class="btn-primary" id="btnSubmitFeedback">Submit Feedback</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- ===================== MODALS ===================== -->
 <!-- New Playlist -->

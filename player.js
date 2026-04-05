@@ -747,7 +747,6 @@ const Player = (() => {
     localStorage.removeItem('groovix_songs');
     localStorage.removeItem('groovix_favs');
     localStorage.removeItem('groovix_playlists');
-    localStorage.removeItem('groovix_feedback');
     localStorage.removeItem('groovix_fab');
     
     // Reset UI

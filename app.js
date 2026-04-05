@@ -323,15 +323,11 @@ function updateSelectCount() {
 
 function deleteSelected() {
   if (!selectedIds.size) return;
-  const songs = Player.getSongs();
-  // Delete in reverse order to preserve indices
-  const indices = [...selectedIds]
-    .map(id => songs.findIndex(s => s.id === id))
-    .filter(i => i >= 0)
-    .sort((a, b) => b - a);
-  indices.forEach(i => Player.removeSong(i));
+  const count = selectedIds.size;
+  const ids = [...selectedIds];
+  Player.removeSongsByIds(ids);
   exitSelectMode();
-  if (typeof showToast === 'function') showToast(`Deleted ${indices.length} song${indices.length !== 1 ? 's' : ''}`);
+  if (typeof showToast === 'function') showToast(`Deleted ${count} song${count !== 1 ? 's' : ''}`);
 }
 
 btnSelectMode.addEventListener('click', enterSelectMode);

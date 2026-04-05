@@ -491,6 +491,7 @@ const Player = (() => {
 
   function removeSong(index) {
     const song = songs[index];
+    if (!song) return;
     if (blobUrls[song.id]) { URL.revokeObjectURL(blobUrls[song.id]); delete blobUrls[song.id]; }
     favIds = favIds.filter(id => id !== song.id);
     playlists.forEach(pl => { pl.songIds = pl.songIds.filter(id => id !== song.id); });
@@ -501,6 +502,32 @@ const Player = (() => {
       albumArt.innerHTML = '<i class="fa fa-music"></i>'; albumArt.classList.remove('playing');
       updatePlayBtn(); updateHeartBtns(); updateNowPlayingBar();
     } else if (currentIndex > index) { currentIndex--; }
+    saveSongs(); saveFavs(); savePlaylists();
+    renderList(searchInput ? searchInput.value : ''); renderFavorites(); renderPlaylists();
+  }
+
+  // Bulk delete by IDs — does one pass then re-renders once
+  function removeSongsByIds(ids) {
+    const idSet = new Set(ids);
+    // Stop playback if current song is being deleted
+    const currentSong = songs[currentIndex];
+    if (currentSong && idSet.has(currentSong.id)) {
+      audio.pause(); isPlaying = false; currentIndex = -1;
+      songTitleEl.textContent = 'No song selected'; songArtistEl.textContent = '--';
+      albumArt.innerHTML = '<i class="fa fa-music"></i>'; albumArt.classList.remove('playing');
+      updatePlayBtn(); updateHeartBtns(); updateNowPlayingBar();
+    }
+    // Remove all matching songs
+    for (let i = songs.length - 1; i >= 0; i--) {
+      if (idSet.has(songs[i].id)) {
+        const song = songs[i];
+        if (blobUrls[song.id]) { URL.revokeObjectURL(blobUrls[song.id]); delete blobUrls[song.id]; }
+        favIds = favIds.filter(id => id !== song.id);
+        playlists.forEach(pl => { pl.songIds = pl.songIds.filter(id => id !== song.id); });
+        songs.splice(i, 1);
+        if (currentIndex > i) currentIndex--;
+      }
+    }
     saveSongs(); saveFavs(); savePlaylists();
     renderList(searchInput ? searchInput.value : ''); renderFavorites(); renderPlaylists();
   }
@@ -708,7 +735,7 @@ const Player = (() => {
     getCurrentSong: () => songs[currentIndex] || null,
     isPlaying: () => isPlaying,
     playSong, addFiles, renderList, renderFavorites, renderPlaylists,
-    removeSong,
+    removeSong, removeSongsByIds,
     showNowPlayingBar: (show) => { if (show && songs[currentIndex]) nowPlayingBar.classList.add('visible'); else nowPlayingBar.classList.remove('visible'); }
   };
 })();

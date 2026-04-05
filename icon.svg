@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background circle -->
+  <defs>
+    <radialGradient id="bg" cx="45%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
+    </radialGradient>
+    <!-- Shadow overlay -->
+    <linearGradient id="shadow" x1="30%" y1="30%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.25)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Circle background -->
+  <circle cx="512" cy="512" r="512" fill="url(#bg)"/>
+  <!-- Shadow overlay on circle -->
+  <circle cx="512" cy="512" r="512" fill="url(#shadow)"/>
+
+  <!-- Headphone shape in cyan -->
+  <!-- Arc (top band) -->
+  <path d="M 512 220
+    C 330 220, 185 365, 185 547
+    L 185 640
+    C 185 640, 185 700, 245 700
+    L 295 700
+    C 295 700, 355 700, 355 640
+    L 355 560
+    C 355 500, 295 500, 295 500
+    L 265 500
+    L 265 547
+    C 265 407, 376 300, 512 300
+    C 648 300, 759 407, 759 547
+    L 759 500
+    L 729 500
+    C 729 500, 669 500, 669 560
+    L 669 640
+    C 669 700, 729 700, 729 700
+    L 779 700
+    C 839 700, 839 640, 839 640
+    L 839 547
+    C 839 365, 694 220, 512 220 Z"
+    fill="#00c8c8"
+    stroke="none"/>
+</svg>

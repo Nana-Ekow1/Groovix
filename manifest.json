@@ -6,7 +6,7 @@
   "scope": "/Groovix/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#111111",
+  "background_color": "#5b21b6",
   "theme_color": "#111111",
   "icons": [
     {
@@ -20,6 +20,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

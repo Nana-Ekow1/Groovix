@@ -1,38 +1,101 @@
 <!DOCTYPE html>
 <html>
-<body>
-<canvas id="c192" width="192" height="192"></canvas>
-<canvas id="c512" width="512" height="512"></canvas>
+<head><title>Generate Groovix Icons</title></head>
+<body style="background:#111;color:#fff;font-family:sans-serif;padding:20px">
+<h2>Groovix Icon Generator</h2>
+<p>Click the buttons below to download the icons, then place them in your project folder.</p>
+<canvas id="c" style="display:none"></canvas>
+<div id="links" style="margin-top:20px;display:flex;gap:20px;flex-wrap:wrap"></div>
+
 <script>
-function drawIcon(canvas) {
+function drawIcon(size) {
+  const canvas = document.getElementById('c');
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext('2d');
-  const s = canvas.width;
-  const r = s * 0.22;
-  // Background
-  const grad = ctx.createLinearGradient(0, 0, s, s);
-  grad.addColorStop(0, '#7c3aed');
-  grad.addColorStop(1, '#a855f7');
+  const cx = size / 2, cy = size / 2, r = size / 2;
+
+  // Background gradient circle
+  const bg = ctx.createRadialGradient(cx * 0.9, cy * 0.8, 0, cx, cy, r);
+  bg.addColorStop(0, '#7c3aed');
+  bg.addColorStop(1, '#5b21b6');
   ctx.beginPath();
-  ctx.roundRect(0, 0, s, s, r);
-  ctx.fillStyle = grad;
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = bg;
   ctx.fill();
-  // Music note
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.font = `bold ${s * 0.5}px serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('♪', s / 2, s / 2 + s * 0.03);
+
+  // Shadow overlay
+  const sh = ctx.createLinearGradient(size * 0.3, size * 0.3, size * 0.85, size * 0.9);
+  sh.addColorStop(0, 'rgba(0,0,0,0)');
+  sh.addColorStop(1, 'rgba(0,0,0,0.28)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = sh;
+  ctx.fill();
+
+  // Headphone in cyan
+  const s = size / 1024;
+  ctx.fillStyle = '#00c8c8';
+  ctx.strokeStyle = '#00c8c8';
+  ctx.lineWidth = 0;
+
+  // Draw headphone using scaled path
+  ctx.save();
+  ctx.scale(s, s);
+
+  const p = new Path2D(`
+    M 512 220
+    C 330 220 185 365 185 547
+    L 185 648
+    C 185 690 215 715 255 715
+    L 305 715
+    C 345 715 370 690 370 648
+    L 370 555
+    C 370 513 345 488 305 488
+    L 270 488
+    L 270 547
+    C 270 412 378 305 512 305
+    C 646 305 754 412 754 547
+    L 754 488
+    L 719 488
+    C 679 488 654 513 654 555
+    L 654 648
+    C 654 690 679 715 719 715
+    L 769 715
+    C 809 715 839 690 839 648
+    L 839 547
+    C 839 365 694 220 512 220 Z
+  `);
+
+  ctx.fill(p);
+  ctx.restore();
+
+  return canvas.toDataURL('image/png');
 }
 
-['c192','c512'].forEach(id => {
-  const c = document.getElementById(id);
-  drawIcon(c);
+const sizes = [192, 512];
+const linksDiv = document.getElementById('links');
+
+sizes.forEach(size => {
+  const dataUrl = drawIcon(size);
+  const preview = document.createElement('img');
+  preview.src = dataUrl;
+  preview.style = `width:${Math.min(size,150)}px;height:${Math.min(size,150)}px;border-radius:20px`;
+
   const a = document.createElement('a');
-  a.download = `icon-${c.width}.png`;
-  a.href = c.toDataURL('image/png');
-  a.textContent = `Download icon-${c.width}.png`;
-  a.style = 'display:block;margin:10px';
-  document.body.appendChild(a);
+  a.href = dataUrl;
+  a.download = `icon-${size}.png`;
+
+  const btn = document.createElement('button');
+  btn.textContent = `⬇ Download icon-${size}.png`;
+  btn.style = 'display:block;margin-top:8px;background:#7c3aed;color:#fff;border:none;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:14px';
+  btn.onclick = () => a.click();
+
+  const wrap = document.createElement('div');
+  wrap.style = 'text-align:center';
+  wrap.appendChild(preview);
+  wrap.appendChild(btn);
+  linksDiv.appendChild(wrap);
 });
 </script>
 </body>

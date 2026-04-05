@@ -290,8 +290,9 @@ selectBar.className = 'select-bar';
 selectBar.innerHTML = `
   <span class="select-bar-count" id="selectCount">0 selected</span>
   <button class="select-bar-btn" id="selectBarSelectAll"><i class="fa fa-check-double"></i> All</button>
+  <button class="select-bar-btn" id="selectBarAddPlaylist"><i class="fa fa-list-ul"></i> Playlist</button>
   <button class="select-bar-btn danger" id="selectBarDelete"><i class="fa fa-trash"></i> Delete</button>
-  <button class="select-bar-btn" id="selectBarCancel"><i class="fa fa-xmark"></i> Cancel</button>
+  <button class="select-bar-btn" id="selectBarCancel"><i class="fa fa-xmark"></i></button>
 `;
 document.body.appendChild(selectBar);
 
@@ -362,10 +363,21 @@ document.getElementById('selectBarSelectAll').addEventListener('click', () => {
 btnDeleteSelected.addEventListener('click', deleteSelected);
 document.getElementById('selectBarDelete').addEventListener('click', deleteSelected);
 
+// Add selected songs to a playlist
+document.getElementById('selectBarAddPlaylist').addEventListener('click', () => {
+  if (!selectedIds.size) { showToast('Select at least one song'); return; }
+  document.getElementById('playlistNameInput').value = '';
+  document.getElementById('newPlaylistModal').classList.add('open');
+  // After playlist is created, add selected songs to it
+  window._pendingSelectAdd = true;
+});
+
 // Expose to player.js for rendering checkboxes
-window.selectMode    = () => selectMode;
-window.selectedIds   = selectedIds;
-window.toggleSelect  = (id) => {
+window.selectMode      = () => selectMode;
+window.selectedIds     = selectedIds;
+window.enterSelectMode = enterSelectMode;
+window.exitSelectMode  = exitSelectMode;
+window.toggleSelect    = (id) => {
   if (selectedIds.has(id)) selectedIds.delete(id);
   else selectedIds.add(id);
   updateSelectCount();

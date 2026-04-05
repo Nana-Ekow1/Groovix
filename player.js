@@ -158,8 +158,31 @@ const Player = (() => {
       <div class="song-item-right">${rightBtns}</div>
     `;
 
+    // Long press (mobile) triggers select mode
+    let pressTimer = null;
+    li.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(() => {
+        if (typeof window.enterSelectMode === 'function') window.enterSelectMode();
+        if (typeof window.toggleSelect === 'function') window.toggleSelect(song.id);
+      }, 500);
+    }, { passive: true });
+    li.addEventListener('touchend',   () => clearTimeout(pressTimer));
+    li.addEventListener('touchmove',  () => clearTimeout(pressTimer));
+
+    // Right click (desktop) triggers select mode
+    li.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (typeof window.enterSelectMode === 'function') window.enterSelectMode();
+      if (typeof window.toggleSelect === 'function') window.toggleSelect(song.id);
+    });
+
     li.addEventListener('click', (e) => {
       if (e.target.closest('.song-item-right')) return;
+      // If in select mode, toggle selection
+      if (typeof window.selectMode === 'function' && window.selectMode()) {
+        if (typeof window.toggleSelect === 'function') window.toggleSelect(song.id);
+        return;
+      }
       const clickIdx = songs.findIndex(s => s.id === song.id);
       playSong(clickIdx >= 0 ? clickIdx : realIdx);
     });
@@ -280,7 +303,18 @@ const Player = (() => {
   function createPlaylist() {
     const name = playlistNameInput.value.trim();
     if (!name) return;
-    playlists.push({ id: Date.now().toString(), name, songIds: [] });
+    const pl = { id: Date.now().toString(), name, songIds: [] };
+    playlists.push(pl);
+
+    // If triggered from bulk select mode, add all selected songs
+    if (window._pendingSelectAdd && window.selectedIds && window.selectedIds.size > 0) {
+      window.selectedIds.forEach(id => { if (!pl.songIds.includes(id)) pl.songIds.push(id); });
+      window._pendingSelectAdd = false;
+      const count = pl.songIds.length;
+      setTimeout(() => { if (typeof showToast === 'function') showToast(`Added ${count} song${count !== 1 ? 's' : ''} to "${name}"`); }, 100);
+      if (typeof window.exitSelectMode === 'function') window.exitSelectMode();
+    }
+
     savePlaylists(); renderPlaylists();
     newPlaylistModal.classList.remove('open');
   }

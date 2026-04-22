@@ -67,6 +67,11 @@ document.getElementById('btnClearAll').addEventListener('click', () => {
   }
 });
 
+// Add Files button
+document.getElementById('btnAddFiles2').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
 // Now playing bar tap → go to player
 document.getElementById('nowPlayingBar').addEventListener('click', (e) => {
   if (!e.target.closest('#npbPlay')) switchScreen('player');
@@ -411,6 +416,6 @@ function onFabPointerUp() {
 aiFabEl.addEventListener('mousedown',  onFabPointerDown);
 aiFabEl.addEventListener('touchstart', onFabPointerDown, { passive: true });
 
-// Init: start on player screen
-switchScreen('player');
+// Init: start on library screen
+switchScreen('library');
 

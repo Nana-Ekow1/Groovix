@@ -174,9 +174,6 @@
 
 <!-- ===================== BOTTOM NAV ===================== -->
 <nav class="bottom-nav">
-  <button class="bnav-btn" data-screen="player">
-    <i class="fa fa-fire"></i><span>Player</span>
-  </button>
   <button class="bnav-btn" data-screen="library">
     <i class="fa fa-music"></i><span>Library</span>
   </button>
@@ -264,7 +261,7 @@
 <script>
   // Register service worker for PWA / offline support
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Groovix/sw.js', { scope: '/Groovix/' })
+    navigator.serviceWorker.register('sw.js', { scope: './' })
       .catch(() => {});
   }
 </script>

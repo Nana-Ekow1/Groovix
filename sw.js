@@ -1,12 +1,12 @@
 const CACHE = 'groovix-v1';
 const ASSETS = [
-  '/Groovix/',
-  '/Groovix/index.html',
-  '/Groovix/style.css',
-  '/Groovix/player.js',
-  '/Groovix/ai.js',
-  '/Groovix/app.js',
-  '/Groovix/manifest.json',
+  './',
+  './index.html',
+  './style.css',
+  './player.js',
+  './ai.js',
+  './app.js',
+  './manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js'
 ];

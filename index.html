@@ -8,7 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="theme-color" content="#111111"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="icon" href="app icon.png" type="image/png"/>
+  <link rel="apple-touch-icon" href="app icon.png"/>
   <meta name="apple-mobile-web-app-title" content="Groovix"/>
 
   <!-- Splash -->
@@ -22,9 +23,40 @@
   </div>
 
   <title>Groovix</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css?v=1.1"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Lato:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Ubuntu:wght@400;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Nunito:wght@400;700&family=Josefin+Sans:wght@400;700&family=Quicksand:wght@400;700&family=Dancing+Script:wght@700&family=Pacifico&family=Orbitron:wght@400;700&family=Indie+Flower&family=Anton&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+  <style>
+    /* Critical UI Fixes */
+    .settings-menu-item {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      padding: 18px 20px !important;
+      background: var(--card) !important;
+      border-radius: 16px !important;
+      margin: 0 16px 14px !important;
+      cursor: pointer !important;
+      border: 1px solid var(--border) !important;
+      gap: 16px !important;
+    }
+    .smenu-icon {
+      width: 52px !important; height: 52px !important;
+      border-radius: 12px !important;
+      background: var(--bg) !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      font-size: 1.6rem !important;
+      color: var(--accent) !important;
+      flex-shrink: 0 !important;
+    }
+    .smenu-text { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+    .smenu-title { font-weight: 800 !important; font-size: 1.1rem !important; color: var(--text) !important; margin-bottom: 4px !important; }
+    .smenu-desc { font-size: 0.85rem !important; color: var(--muted) !important; }
+    .smenu-arrow { color: var(--muted) !important; font-size: 1rem !important; }
+    .settings-subpage { animation: slideInRight 0.3s ease; }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+  </style>
 </head>
 <body>
 
@@ -49,18 +81,17 @@
       <p class="player-artist" id="songArtist">--</p>
       <h2 class="player-title" id="songTitle">No song selected</h2>
     </div>
-    <button class="btn-heart" id="btnFavPlayer"><i class="fa-regular fa-heart"></i></button>
+    <button class="btn-heart" id="btnHeart"><i class="fa fa-heart"></i></button>
   </div>
 
   <!-- Action row -->
   <div class="player-actions">
-    <button class="action-btn fav-action" id="btnLike"><i class="fa-regular fa-heart"></i><span>Like</span></button>
-    <button class="action-btn" id="btnAddPlaylist"><i class="fa fa-list-ul"></i><span>Playlist</span></button>
-    <button class="action-btn" id="btnAddFiles2"><i class="fa fa-plus"></i><span>Add</span></button>
-    <label class="action-btn" for="fileInput"><i class="fa fa-folder-open"></i><span>Import</span></label>
+    <button class="action-btn" id="btnAddToPlaylist"><i class="fa fa-plus"></i><span>Add to Playlist</span></button>
+    <button class="action-btn" id="btnImportFolder"><i class="fa fa-folder-open"></i><span>Import Folder</span></button>
     <input type="file" id="fileInput" accept="audio/*" multiple hidden/>
-    <button class="action-btn" id="btnShare"><i class="fa fa-share-nodes"></i><span>Share</span></button>
-    <button class="action-btn danger" id="btnClearAll"><i class="fa fa-trash"></i><span>Clear All</span></button>
+    <input type="file" id="folderInput" webkitdirectory directory multiple hidden/>
+    <button class="action-btn" id="btnRepeat"><i class="fa fa-repeat"></i><span>Repeat</span></button>
+    <button class="action-btn" id="btnFavoriteAction"><i class="fa fa-heart"></i><span>Favorite</span></button>
   </div>
 
   <!-- Waveform progress -->
@@ -86,26 +117,9 @@
     <button class="ctrl-btn" id="btnShuffle"><i class="fa fa-shuffle"></i></button>
   </div>
 
-  <!-- Bottom bar -->
-  <div class="player-bottom-bar">
-    <div class="pbb-left">
-      <button class="pbb-btn" id="btnRepeat"><i class="fa fa-repeat"></i> Repeat</button>
-    </div>
-    <div class="pbb-right">
-      <span class="pbb-label">Stay on</span>
-      <label class="toggle-switch">
-        <input type="checkbox" id="stayOnToggle"/>
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-  </div>
 
-  <!-- Volume -->
-  <div class="player-volume">
-    <i class="fa fa-volume-low"></i>
-    <input type="range" id="volumeBar" value="80" min="0" max="100"/>
-    <i class="fa fa-volume-high"></i>
-  </div>
+
+
 
 </div>
 
@@ -115,9 +129,11 @@
   <div class="lib-topbar">
     <span class="lib-title" id="libTopbarTitle">MY LIBRARY</span>
     <div class="lib-topbar-actions" id="libNormalActions">
-      <button class="topbar-btn" id="grantFolderBtn"><i class="fa fa-folder-open"></i></button>
-      <button class="topbar-btn" id="btnSearch"><i class="fa fa-search"></i></button>
-      <button class="topbar-btn" id="btnSelectMode" title="Select songs"><i class="fa fa-check-square"></i></button>
+      <label class="topbar-btn" for="folderInput" title="Add Folder" style="display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <i class="fa fa-plus"></i>
+      </label>
+      <button class="topbar-btn" id="btnSearch" title="Search"><i class="fa fa-search"></i></button>
+      <button class="topbar-btn" id="btnSettings" title="Settings"><i class="fa fa-gear"></i></button>
     </div>
     <!-- Select mode toolbar (hidden by default) -->
     <div class="lib-topbar-actions" id="libSelectActions" style="display:none">
@@ -137,9 +153,6 @@
   <!-- Filter tabs -->
   <div class="lib-tabs">
     <button class="lib-tab active" data-tab="all">All</button>
-    <button class="lib-tab" data-tab="local">Local</button>
-    <button class="lib-tab" data-tab="favorites">Favorites</button>
-    <button class="lib-tab" data-tab="playlists">Playlists</button>
   </div>
 
   <div id="folderStatus" class="folder-status" style="display:none"></div>
@@ -160,7 +173,7 @@
   <!-- Song list -->
   <div class="lib-content" id="libContent">
     <ul class="song-list" id="songList">
-      <li class="empty-msg"><i class="fa fa-music"></i><br>No songs yet.<br>Tap the folder icon to add music.</li>
+      <li class="empty-msg"><i class="fa fa-music"></i><br>No songs yet.<br>Tap the plus icon at the top to add a music folder.</li>
     </ul>
     <!-- Favorites tab content -->
     <ul class="song-list" id="favoritesList" style="display:none"></ul>
@@ -170,11 +183,349 @@
     </div>
   </div>
 
+
+</div>
+
+<!-- ===================== SETTINGS SCREEN ===================== -->
+<div class="screen" id="screen-settings">
+  <div class="player-topbar">
+    <button class="topbar-btn" id="btnBackSettings"><i class="fa fa-arrow-left"></i></button>
+    <span class="topbar-title">Settings</span>
+    <div style="width: 34px;"></div>
+  </div>
+
+  <div class="settings-content">
+    <!-- Main Settings Menu -->
+    <div id="settings-main-menu">
+      <div class="settings-menu-item" data-subpage="playback">
+        <div class="smenu-icon"><i class="fa fa-play-circle"></i></div>
+        <div class="smenu-text">
+          <div class="smenu-title">Playback</div>
+          <div class="smenu-desc">Equalizer, Speed, Crossfade</div>
+        </div>
+        <i class="fa fa-chevron-right smenu-arrow"></i>
+      </div>
+
+      <div class="settings-menu-item" data-subpage="library">
+        <div class="smenu-icon"><i class="fa fa-book"></i></div>
+        <div class="smenu-text">
+          <div class="smenu-title">Library</div>
+          <div class="smenu-desc">Scanning, Sorting, Folders</div>
+        </div>
+        <i class="fa fa-chevron-right smenu-arrow"></i>
+      </div>
+
+      <div class="settings-menu-item" data-subpage="appearance">
+        <div class="smenu-icon"><i class="fa fa-palette"></i></div>
+        <div class="smenu-text">
+          <div class="smenu-title">Appearance</div>
+          <div class="smenu-desc">Themes, Fonts, Player Style</div>
+        </div>
+        <i class="fa fa-chevron-right smenu-arrow"></i>
+      </div>
+
+      <div class="settings-menu-item" data-subpage="controls">
+        <div class="smenu-icon"><i class="fa fa-bell"></i></div>
+        <div class="smenu-text">
+          <div class="smenu-title">Notifications & Controls</div>
+          <div class="smenu-desc">Lock Screen, Bluetooth, Headset</div>
+        </div>
+        <i class="fa fa-chevron-right smenu-arrow"></i>
+      </div>
+
+      <div class="settings-menu-item" data-subpage="ai">
+        <div class="smenu-icon"><i class="fa fa-robot"></i></div>
+        <div class="smenu-text">
+          <div class="smenu-title">AI Features</div>
+          <div class="smenu-desc">Assistant, Recommendations, Voice</div>
+        </div>
+        <i class="fa fa-chevron-right smenu-arrow"></i>
+      </div>
+
+      <div class="settings-menu-item" data-subpage="data">
+        <div class="smenu-icon"><i class="fa fa-database"></i></div>
+        <div class="smenu-text">
+          <div class="smenu-title">Data Management</div>
+          <div class="smenu-desc">Clear cache, reset app</div>
+        </div>
+        <i class="fa fa-chevron-right smenu-arrow"></i>
+      </div>
+    </div>
+
+    <!-- Subpage: Playback -->
+    <div id="subpage-playback" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">Playback</h3>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Equalizer</span>
+            <span class="settings-value" id="eqValue">Normal</span>
+          </div>
+          <select class="settings-select" id="eqSelect">
+            <option value="normal">Normal</option>
+            <option value="bass">Bass Boost</option>
+            <option value="pop">Pop</option>
+            <option value="rock">Rock</option>
+            <option value="classical">Classical</option>
+          </select>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Playback Speed</span>
+            <span class="settings-value" id="speedValue">1.0x</span>
+          </div>
+          <input type="range" class="settings-slider" id="speedSlider" min="0.5" max="2" step="0.1" value="1">
+          <div class="slider-labels"><span>0.5x</span><span>1.0x</span><span>2.0x</span></div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Crossfade</span>
+            <span class="settings-value" id="crossfadeValue">Off</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch">
+              <input type="checkbox" id="crossfadeToggle"/><span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subpage: Library -->
+    <div id="subpage-library" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">Library Settings</h3>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Auto-scan for music</span>
+            <span class="settings-value" id="autoScanValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoScanToggle" checked/><span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Sort Songs By</span>
+            <span class="settings-value" id="sortValue">Date Added</span>
+          </div>
+          <select class="settings-select" id="sortSelectSettings">
+            <option value="date">Date Added</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="artist-asc">Artist (A-Z)</option>
+            <option value="artist-desc">Artist (Z-A)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subpage: Appearance -->
+    <div id="subpage-appearance" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">Appearance</h3>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Theme</span>
+            <span class="settings-value" id="themeValue">Dark</span>
+          </div>
+          <div class="theme-options">
+            <button class="theme-btn active" data-theme="default">
+              <div class="theme-color" style="background: #111111; border: 1px solid #333;"></div><span>Dark</span>
+            </button>
+            <button class="theme-btn" data-theme="light">
+              <div class="theme-color" style="background: #f8fafc; border: 1px solid #cbd5e1;"></div><span>Light</span>
+            </button>
+            <button class="theme-btn" data-theme="ocean">
+              <div class="theme-color" style="background: #0f172a; border: 1px solid #1e293b;"></div><span>Ocean</span>
+            </button>
+            <button class="theme-btn" data-theme="sunset">
+              <div class="theme-color" style="background: #2a0a18; border: 1px solid #4a152c;"></div><span>Sunset</span>
+            </button>
+            <button class="theme-btn" data-theme="neon">
+              <div class="theme-color" style="background: #0a0a0a; border: 1px solid #333;"></div><span>Neon</span>
+            </button>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Accent Color</span>
+            <span class="settings-value" id="accentValue">Purple</span>
+          </div>
+          <div class="accent-options">
+            <button class="accent-btn" data-accent="purple" style="background: #8b5cf6;"></button>
+            <button class="accent-btn" data-accent="blue" style="background: #3b82f6;"></button>
+            <button class="accent-btn" data-accent="green" style="background: #10b981;"></button>
+            <button class="accent-btn" data-accent="pink" style="background: #ec4899;"></button>
+            <button class="accent-btn" data-accent="orange" style="background: #f97316;"></button>
+          </div>
+        </div>
+
+        <!-- New Appearance Items -->
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Now Playing Style</span>
+            <span class="settings-value" id="playerStyleValue">Circle Art</span>
+          </div>
+          <select class="settings-select" id="playerStyleSelect">
+            <option value="circle">Circle Art</option>
+            <option value="square">Fullscreen Square</option>
+            <option value="minimal">Minimalist</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Font Size</span>
+            <span class="settings-value" id="fontSizeValue">20px</span>
+          </div>
+          <input type="range" class="settings-slider" id="fontSizeSlider" min="14" max="26" step="1" value="20">
+          <div class="slider-labels"><span>Small</span><span>Medium</span><span>Large</span></div>
+        </div>
+
+        <!-- Font Selection Trigger -->
+        <div class="settings-menu-item" data-subpage="fonts" style="margin: 20px 0 0; padding: 12px 0; background: transparent; border: none;">
+          <div class="smenu-icon" style="width: 38px; height: 38px; font-size: 1.1rem;"><i class="fa fa-font"></i></div>
+          <div class="smenu-text">
+            <div class="smenu-title" style="font-size: 0.95rem;">App Font</div>
+            <div class="smenu-desc" id="currentFontValue">Inter (Default)</div>
+          </div>
+          <i class="fa fa-chevron-right smenu-arrow"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subpage: Fonts -->
+    <div id="subpage-fonts" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">Select Font</h3>
+        <div class="font-list" id="fontList">
+          <div class="font-option active" data-font="'Inter', sans-serif" style="font-family: 'Inter', sans-serif;">Inter (Default)</div>
+          <div class="font-option" data-font="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif;">Roboto</div>
+          <div class="font-option" data-font="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif;">Open Sans</div>
+          <div class="font-option" data-font="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif;">Montserrat</div>
+          <div class="font-option" data-font="'Poppins', sans-serif" style="font-family: 'Poppins', sans-serif;">Poppins</div>
+          <div class="font-option" data-font="'Lato', sans-serif" style="font-family: 'Lato', sans-serif;">Lato</div>
+          <div class="font-option" data-font="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif;">Oswald</div>
+          <div class="font-option" data-font="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif;">Raleway</div>
+          <div class="font-option" data-font="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif;">Ubuntu</div>
+          <div class="font-option" data-font="'Playfair Display', serif" style="font-family: 'Playfair Display', serif;">Playfair Display</div>
+          <div class="font-option" data-font="'Merriweather', serif" style="font-family: 'Merriweather', serif;">Merriweather</div>
+          <div class="font-option" data-font="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif;">Nunito</div>
+          <div class="font-option" data-font="'Josefin Sans', sans-serif" style="font-family: 'Josefin Sans', sans-serif;">Josefin Sans</div>
+          <div class="font-option" data-font="'Quicksand', sans-serif" style="font-family: 'Quicksand', sans-serif;">Quicksand</div>
+          <div class="font-option" data-font="'Dancing Script', cursive" style="font-family: 'Dancing Script', cursive;">Dancing Script</div>
+          <div class="font-option" data-font="'Pacifico', cursive" style="font-family: 'Pacifico', cursive;">Pacifico</div>
+          <div class="font-option" data-font="'Orbitron', sans-serif" style="font-family: 'Orbitron', sans-serif;">Orbitron</div>
+          <div class="font-option" data-font="'Indie Flower', cursive" style="font-family: 'Indie Flower', cursive;">Indie Flower</div>
+          <div class="font-option" data-font="'Anton', sans-serif" style="font-family: 'Anton', sans-serif;">Anton</div>
+          <div class="font-option" data-font="'Caveat', cursive" style="font-family: 'Caveat', cursive;">Caveat</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subpage: Notifications & Controls -->
+    <div id="subpage-controls" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">Notifications & Controls</h3>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Lock Screen Controls</span>
+            <span class="settings-value" id="lockScreenValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="lockScreenToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Notification Player</span>
+            <span class="settings-value" id="notifPlayerValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="notifPlayerToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Bluetooth Controls</span>
+            <span class="settings-value" id="btControlsValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="btControlsToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Auto-play (Headphones)</span>
+            <span class="settings-value" id="headphonesValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="headphonesToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subpage: AI Features -->
+    <div id="subpage-ai" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">🤖 AI Assistant</h3>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Enable AI Assistant</span>
+            <span class="settings-value" id="aiEnabledValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="aiEnabledToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Smart Recommendations</span>
+            <span class="settings-value" id="aiRecValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="aiRecToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Search Assistant</span>
+            <span class="settings-value" id="aiSearchValue">On</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="aiSearchToggle" checked/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-label">
+            <span>Voice Commands</span>
+            <span class="settings-value" id="aiVoiceValue">Off</span>
+          </div>
+          <div class="settings-toggle">
+            <label class="toggle-switch"><input type="checkbox" id="aiVoiceToggle"/><span class="toggle-track"></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subpage: Data -->
+    <div id="subpage-data" class="settings-subpage" style="display:none">
+      <div class="settings-group">
+        <h3 class="settings-group-title">Data Management</h3>
+        <button class="btn-primary danger" id="btnClearData"><i class="fa fa-trash"></i> Clear All Data</button>
+        <p class="settings-desc">This will remove all songs, playlists, and settings. This cannot be undone.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===================== BOTTOM NAV ===================== -->
 <nav class="bottom-nav">
-  <button class="bnav-btn" data-screen="library">
+  <button class="bnav-btn" data-screen="library" data-tab="all">
     <i class="fa fa-music"></i><span>Library</span>
   </button>
   <button class="bnav-btn" data-screen="library" data-tab="favorites">
@@ -201,7 +552,7 @@
   <div class="context-menu-header" id="contextMenuSongName">Options</div>
   <button class="context-item" id="ctxPlayNext"><i class="fa fa-forward-step"></i> Play Next</button>
   <button class="context-item" id="ctxQueue"><i class="fa fa-list"></i> Add to Queue</button>
-  <button class="context-item" id="ctxLike"><i class="fa-regular fa-heart"></i> Like</button>
+  <button class="context-item" id="ctxAddToPlaylist"><i class="fa fa-plus"></i> Add to Playlist</button>
   <button class="context-item" id="ctxAskAI"><i class="fa fa-robot"></i> Ask AI About Track</button>
   <button class="context-item" id="ctxDelete"><i class="fa fa-trash"></i> Delete</button>
   <button class="context-item context-cancel" id="ctxCancel">Cancel</button>
@@ -211,36 +562,6 @@
 
 
 <!-- ===================== MODALS ===================== -->
-<!-- New Playlist -->
-<div class="modal-overlay" id="newPlaylistModal">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h3>New Playlist</h3>
-      <button class="modal-close" id="newPlaylistClose"><i class="fa fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <input type="text" id="playlistNameInput" class="text-input" placeholder="Playlist name..."/>
-      <button class="btn-primary" id="btnCreatePlaylist">Create Playlist</button>
-    </div>
-  </div>
-</div>
-
-<!-- Playlist Detail -->
-<div class="modal-overlay" id="playlistModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modalPlaylistName">Playlist</h3>
-      <button class="modal-close" id="modalClose"><i class="fa fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <ul class="song-list" id="playlistSongList"></ul>
-      <div class="modal-add-section">
-        <p class="section-label">Add from library</p>
-        <ul class="song-list" id="modalLibrarySongs"></ul>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ===================== AI FAB ===================== -->
 <button class="ai-fab" id="aiFab"><i class="fa fa-robot"></i><span class="ai-fab-dot"></span></button>
@@ -265,8 +586,8 @@
       .catch(() => {});
   }
 </script>
-<script src="player.js"></script>
-<script src="ai.js"></script>
-<script src="app.js"></script>
+<script src="player.js?v=1.2"></script>
+<script src="ai.js?v=1.2"></script>
+<script src="app.js?v=1.2"></script>
 </body>
 </html>

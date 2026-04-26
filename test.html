@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test App Load</title>
+    <script>
+        // Simple test to check if app loads
+        window.addEventListener('load', function() {
+            console.log('Page loaded');
+            
+            // Check if Player module exists
+            if (typeof Player !== 'undefined') {
+                console.log('Player module loaded');
+            } else {
+                console.error('Player module not loaded');
+            }
+            
+            // Check if app.js functions exist
+            if (typeof switchScreen !== 'undefined') {
+                console.log('switchScreen function exists');
+            } else {
+                console.error('switchScreen function not found');
+            }
+        });
+        
+        // Error handler
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.message, 'at', e.filename, 'line', e.lineno);
+        });
+    </script>
+</head>
+<body>
+    <h1>Testing app load...</h1>
+    <p>Check browser console for errors.</p>
+</body>
+</html>

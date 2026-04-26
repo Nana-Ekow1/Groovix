@@ -1,4 +1,4 @@
-const CACHE = 'groovix-v1';
+const CACHE = 'groovix-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -19,12 +19,16 @@ self.addEventListener('install', e => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
+// Activate: clear old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE) return caches.delete(key);
+        })
+      );
+    })
   );
   self.clients.claim();
 });

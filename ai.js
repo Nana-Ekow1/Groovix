@@ -43,8 +43,6 @@ MUSIC KNOWLEDGE
 GROOVIX APP HELP
 - Adding songs: tap folder icon or + in Library tab
 - Playing music: tap any song in the library
-- Favorites: tap the heart icon on any song
-- Playlists: go to Playlists tab, tap + to create one
 - Bulk delete: long press a song on mobile or right-click on PC to enter select mode
 - Sort songs: use the sort dropdown in Library
 - Search: tap the search icon in Library

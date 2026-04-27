@@ -448,17 +448,23 @@ function addSongToPlaylist(song) {
   });
 }
 
-// Ask AI About Track
-document.getElementById('ctxAskAI').addEventListener('click', () => {
+// Research Artist
+document.getElementById('ctxResearchArtist').addEventListener('click', () => {
   const song = Player.getSongs()[ctxTargetIndex];
-  if (song) {
-    const q = `Tell me about the song "${song.name}" by ${song.artist || 'Unknown Artist'}`;
+  if (song && song.artist) {
+    const q = `Research artist: ${song.artist}`;
     document.getElementById('chatInput').value = q;
     aiPanel.classList.add('open');
     document.getElementById('chatInput').focus();
+    // Auto-send if AI is ready
+    if (typeof AI !== 'undefined' && AI.send) AI.send();
+  } else {
+    showToast('Artist information missing');
   }
   closeContextMenu();
 });
+
+// Ask AI About Track
 
 // Delete
 document.getElementById('ctxDelete').addEventListener('click', () => {

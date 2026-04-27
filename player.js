@@ -32,13 +32,18 @@ const Player = (() => {
   const AUDIO_EXTS = ['mp3','wav','flac','ogg','aac','m4a','opus','weba'];
 
   // ---- IndexedDB for Persistent Storage ----
-  const DB_NAME = 'GroovixDB';
-  const STORE_NAME = 'music';
+  const DB_VERSION = 2;
+  const STORE_MUSIC = 'music';
+  const STORE_COVERS = 'covers';
   
   function openDB() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, 1);
-      request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME);
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = (e) => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE_MUSIC)) db.createObjectStore(STORE_MUSIC);
+        if (!db.objectStoreNames.contains(STORE_COVERS)) db.createObjectStore(STORE_COVERS);
+      };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -46,23 +51,58 @@ const Player = (() => {
 
   async function saveFileToDB(id, file) {
     const db = await openDB();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put(file, id);
+    const tx = db.transaction(STORE_MUSIC, 'readwrite');
+    tx.objectStore(STORE_MUSIC).put(file, id);
   }
 
   async function getFileFromDB(id) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
-      const req = db.transaction(STORE_NAME).objectStore(STORE_NAME).get(id);
+      const req = db.transaction(STORE_MUSIC).objectStore(STORE_MUSIC).get(id);
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     });
   }
 
-  async function deleteFileFromDB(id) {
-    const db = await openDB();
-    db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(id);
+  async function saveCoverToDB(id, blob) {
+    try {
+      const db = await openDB();
+      const tx = db.transaction(STORE_COVERS, 'readwrite');
+      tx.objectStore(STORE_COVERS).put(blob, id);
+    } catch(e) { console.warn('Cover save error', e); }
   }
+
+  async function getCoverFromDB(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const req = db.transaction(STORE_COVERS).objectStore(STORE_COVERS).get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function deleteFromDB(id) {
+    const db = await openDB();
+    const tx = db.transaction([STORE_MUSIC, STORE_COVERS], 'readwrite');
+    tx.objectStore(STORE_MUSIC).delete(id);
+    tx.objectStore(STORE_COVERS).delete(id);
+  }
+
+  async function hydrateCovers() {
+    console.log('Hydrating covers...');
+    for (const song of songs) {
+      if (!song.coverUrl || song.coverUrl.startsWith('blob:')) {
+        try {
+          const blob = await getCoverFromDB(song.id);
+          if (blob) {
+            song.coverUrl = URL.createObjectURL(blob);
+          }
+        } catch(e) { console.warn('Hydration failed for', song.id, e); }
+      }
+    }
+    renderList(searchInput ? searchInput.value : '');
+  }
+
 
   // Web Audio EQ
   let audioCtx, sourceNode, eqFilters = [];
@@ -128,21 +168,18 @@ const Player = (() => {
 
   function saveSongs() {
     localStorage.setItem('groovix_songs', JSON.stringify(
-      songs.map(s => ({ id: s.id, name: s.name, artist: s.artist, album: s.album, duration: s.duration, dateAdded: s.dateAdded }))
+      songs.map(s => ({ 
+        id: s.id, 
+        name: s.name, 
+        artist: s.artist, 
+        album: s.album, 
+        duration: s.duration, 
+        coverUrl: s.coverUrl, // Note: transient blob URLs won't work after reload
+        dateAdded: s.dateAdded 
+      }))
     ));
   }
 
-  function getSortedSongs(list) {
-    const s = [...list];
-    if (sortMode === 'title') {
-      return s.sort((a,b) => a.name.localeCompare(b.name));
-    } else if (sortMode === 'artist') {
-      return s.sort((a,b) => (a.artist||'').localeCompare(b.artist||''));
-    } else if (sortMode === 'newest') {
-      return s.sort((a,b) => (b.dateAdded||0) - (a.dateAdded||0));
-    }
-    return s; // default
-  }
 
   // ---- Waveform ----
   function buildWaveform() {
@@ -498,24 +535,21 @@ const Player = (() => {
     }
 
     audio.src = blobUrls[song.id];
-    audio.play()
-      .then(() => {
-        isPlaying = true;
-        albumArt.classList.add('playing');
-        updatePlayBtn();
-        updateNowPlayingBar();
-        renderList(searchInput ? searchInput.value : '');
-      })
-      .catch(e => {
-        console.error('Play error:', e);
-        isPlaying = false;
-        updatePlayBtn();
-      });
-  }
-
-    // Wait for canplay before attempting play
-    console.log('Adding canplay event listener');
-    audio.addEventListener('canplay', tryPlay, { once: true });
+    
+    try {
+      await audio.play();
+      isPlaying = true;
+      albumArt.classList.add('playing');
+      updatePlayBtn();
+      updateNowPlayingBar();
+      renderList(searchInput ? searchInput.value : '');
+    } catch (e) {
+      console.error('Play error:', e);
+      isPlaying = false;
+      updatePlayBtn();
+      // Handle "NotAllowedError" or other autoplay issues
+      showToast('Click play to start');
+    }
 
     if (typeof switchScreen === 'function') switchScreen('player');
   }
@@ -577,7 +611,7 @@ const Player = (() => {
     const song = songs[index];
     if (!song) return;
     if (blobUrls[song.id]) { URL.revokeObjectURL(blobUrls[song.id]); delete blobUrls[song.id]; }
-    deleteFileFromDB(song.id); // Also remove from IndexedDB
+    deleteFromDB(song.id); // Also remove from IndexedDB (music & cover)
     songs.splice(index, 1);
     if (currentIndex === index) {
       audio.pause(); isPlaying = false; currentIndex = -1;
@@ -605,7 +639,7 @@ const Player = (() => {
       if (idSet.has(songs[i].id)) {
         const song = songs[i];
         if (blobUrls[song.id]) { URL.revokeObjectURL(blobUrls[song.id]); delete blobUrls[song.id]; }
-        deleteFileFromDB(song.id); // Also remove from IndexedDB
+        deleteFromDB(song.id); // Also remove from IndexedDB (music & cover)
         songs.splice(i, 1);
         if (currentIndex > i) currentIndex--;
       }
@@ -618,8 +652,13 @@ const Player = (() => {
     console.log('addFiles called with', files.length, 'files');
     const filesArray = Array.from(files);
     
-    // Clear reload prompt
+    // Clear reload prompt if it was showing
     if (albumArt.querySelector('label')) albumArt.innerHTML = '<i class="fa fa-music"></i>';
+
+    let count = 0;
+    const total = filesArray.length;
+    
+    if (total > 5) showToast(`Importing ${total} songs...`);
 
     for (const file of filesArray) {
       try {
@@ -662,12 +701,18 @@ const Player = (() => {
               if (t.picture) {
                 const blob = new Blob([new Uint8Array(t.picture.data)], { type: t.picture.format });
                 song.coverUrl = URL.createObjectURL(blob);
+                saveCoverToDB(id, blob);
               }
               saveSongs();
               renderList(searchInput ? searchInput.value : '');
+            },
+            onError: (err) => {
+              console.warn('Tag read error for', file.name, err);
             }
           });
         }
+        
+        count++;
       } catch (fErr) {
         console.error('File process error:', file.name, fErr);
       }
@@ -675,7 +720,7 @@ const Player = (() => {
 
     saveSongs();
     renderList(searchInput ? searchInput.value : '');
-    showToast(`Imported ${filesArray.length} items`);
+    showToast(`Successfully added ${count} songs`);
   }
 
   // ---- Controls ----
@@ -720,7 +765,6 @@ const Player = (() => {
   // ---- Folder Access ----
   const grantFolderBtn = document.getElementById('grantFolderBtn');
   const folderStatus   = document.getElementById('folderStatus');
-  const AUDIO_EXTS     = ['mp3','wav','flac','ogg','aac','m4a','opus','weba'];
 
   function setFolderStatus(msg, type = '') {
     folderStatus.style.display = 'flex';
@@ -840,7 +884,6 @@ const Player = (() => {
   }
 
   // On load, if we have saved songs but no blobs, show the banner
-  if (songs.length > 0) showReloadBanner();
 
   // ---- Clear Everything Function ----
   function clearEverything() {
@@ -868,6 +911,12 @@ const Player = (() => {
     updatePlayBtn();
     updateNowPlayingBar();
     
+    // Clear IndexedDB
+    openDB().then(db => {
+      db.transaction(STORE_MUSIC, 'readwrite').objectStore(STORE_MUSIC).clear();
+      db.transaction(STORE_COVERS, 'readwrite').objectStore(STORE_COVERS).clear();
+    });
+    
     // Clear lists
     renderList();
     
@@ -881,6 +930,7 @@ const Player = (() => {
 
   // Init
   renderList();
+  hydrateCovers();
 
   return {
     getSongs: () => songs,
